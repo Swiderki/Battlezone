@@ -8,9 +8,14 @@ const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
 
 class Battlezone extends Engine {
-  //* Game objects
-  public player: PlayerTank;
-  public enemies: GameObject[] = [];
+  player: PlayerTank;
+  enemies: GameObject[] = [
+    new Enemy([10, 0, 30]),
+    new Enemy([90, 0, 30]),
+    new Enemy([10, 0, 70]),
+    new Enemy([10, 0, 10]),
+    new Enemy([20, 0, -50]),
+  ];
 
   //* Game controls
   public keysPressed: Set<string> = new Set();
@@ -37,11 +42,11 @@ class Battlezone extends Engine {
 
 
   spawnTank() {
-    if(!this.currentScene) {
+    if (!this.currentScene) {
       return;
     }
 
-    const enemy = new Enemy([0, 0, 60], [.2, .2, .2]);
+    const enemy = new Enemy([0, 0, 60], [0.2, 0.2, 0.2]);
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
   }
@@ -49,7 +54,7 @@ class Battlezone extends Engine {
 
   override Start(): void {
     this.setResolution(1280, 720);
-    const camera =  new Camera(60, .1, 1000, [0, 12, 0], [0, 0, 1]);
+    const camera = new Camera(60, 0.1, 1000, [0, 12, 0], [0, 0, 1]);
     // Scene set up
     const mainScene = new Scene();
 
@@ -81,10 +86,12 @@ class Battlezone extends Engine {
     
     // test purpose only
     this.spawnTank();
+<<<<<<< HEAD
   }
 
   override Update(): void {
     this.player.handlePlayerMove(this.keysPressed);
+    this.drawRadar();
   }
 }
 
