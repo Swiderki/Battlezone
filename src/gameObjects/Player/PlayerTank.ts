@@ -2,7 +2,9 @@ import { Camera, GameObject, PhysicalGameObject, Vec3DTuple, Vector } from "drak
 import Crosshair from "../gui/crosshair";
 import Battlezone from "../../main";
 import Enemy from "../enemies/Enemy";
-import { checkVectorSimilarity } from "../../util/rayCast";
+import { QuaternionUtils } from "drake-engine";
+import { checkVectorSimilarity, rayCast } from "../../util/rayCast";
+
 
 class PlayerTank extends PhysicalGameObject {
     public playerCamera?: Camera;
@@ -11,16 +13,54 @@ class PlayerTank extends PhysicalGameObject {
     constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
         super('public/empty.obj', { position, size, rotation });
         this.enemies = game.enemies;
-
+    }
+    
+    handleCamera(): void {
+        // pspsps
+        // oh well whatever nevermind
     }
 
 
-    handleCamera(): void {
-        // pspsps
+    handlePlayerMove(e: Set<string>) {
+        if(e.has("w")) 
+            this.move(this.playerCamera!.lookDir.x, this.playerCamera!.lookDir.y, this.playerCamera!.lookDir.z);
+        if(e.has("s")) 
+            this.move(-this.playerCamera!.lookDir.x, -this.playerCamera!.lookDir.y, -this.playerCamera!.lookDir.z);
+        if(e.has("e")) 
+            this.playerCamera?.rotate({x: 0, y: 1, z: 0}, Math.PI / 180 * 1)
+        if(e.has("q")) 
+            this.playerCamera?.rotate({x: 0, y: -1, z: 0}, Math.PI / 180 * 1)
+        // TODO implement better way to rotate vectors
+        // TODO this one kinda sucks  
+        if(e.has('a')) {
+            const q = { x: 0, y: 0, z: 0, w: 0 };
+            QuaternionUtils.setFromAxisAngle(
+                q,
+                { x: 0, y: 1, z: 0 },
+                -Math.PI / 180 * 90
+            );
+            
+            const rotatedVector = Vector.zero();
+            QuaternionUtils.rotateVector(q, this.playerCamera!.lookDir, rotatedVector);
+            this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
+        }
+        if(e.has('d')) {
+            const q = { x: 0, y: 0, z: 0, w: 0 };
+            QuaternionUtils.setFromAxisAngle(
+                q,
+                { x: 0, y: 1, z: 0 },
+                Math.PI / 180 * 90
+            );
+            
+            const rotatedVector = Vector.zero();
+            QuaternionUtils.rotateVector(q, this.playerCamera!.lookDir, rotatedVector);
+            this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
+        }
 
     }
 
     handleCrosshair(): void {
+        
         if(this.playerCrosshair === undefined || this.playerCamera === undefined){
             return;
         }
@@ -28,10 +68,8 @@ class PlayerTank extends PhysicalGameObject {
         this.playerCrosshair.isTargeting = false;
 
         this.enemies.forEach(enemy => {
-            // its not working as intended
-            // when we go far enough from target its nor working
-            // issue being that vectors are normalized
-            if(checkVectorSimilarity(Vector.subtract(enemy.position, this.playerCamera!.position), this.playerCamera!.lookDir, .999)) {
+            if(enemy.boxCollider === null) return; // prevent further errors
+            if(rayCast(this.position, this.playerCamera!.lookDir, enemy.boxCollider)) {
                 this.playerCrosshair!.isTargeting = true;
             }
         })
@@ -39,7 +77,7 @@ class PlayerTank extends PhysicalGameObject {
 
     override move(x: number, y: number, z: number): void {
         super.move(x, y, z);
-        // bind camer to the player
+        // bind camera to the player
         if(this.playerCamera) {
             this.playerCamera.move(x, y, z);
         }

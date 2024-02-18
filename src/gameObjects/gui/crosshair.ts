@@ -4,18 +4,12 @@ class Crosshair implements GUIElement {
     public height: number;
     public width: number;
     public position: { x: number; y: number };
-    private canvasWidth: number;
-    private canvasHeight: number;
     public isTargeting: boolean = false
 
-    constructor(canvasWidth: number, canvasHeight: number) {
+    constructor() {
         this.width = 20;
         this.height = 20;
         this.position = { x: 0, y: 0 };
-        this.canvasWidth = canvasWidth;
-        this.canvasHeight = canvasHeight;
-        console.log(canvasWidth);
-        console.log(canvasHeight);
     }
 
     public render(ctx: CanvasRenderingContext2D): void {
@@ -27,8 +21,8 @@ class Crosshair implements GUIElement {
         ctx.lineWidth = 2;
 
         // Calculate the center coordinates of the canvas
-        const centerX = this.canvasWidth / 2;
-        const centerY = this.canvasHeight / 2;
+        const centerX = ctx.canvas.width / 2;
+        const centerY = ctx.canvas.height / 2;
 
         // Calculate the actual position of the crosshair based on the offset from the center
         const offsetX = centerX + this.position.x;

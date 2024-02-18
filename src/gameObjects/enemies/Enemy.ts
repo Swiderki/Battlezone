@@ -4,7 +4,13 @@ class Enemy extends PhysicalGameObject {
     
     constructor(position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
         super('public/objects/tanks/tank.obj', { position, size, rotation });
-        this.loadMesh()
+        // this.showBoxcollider = true;
+        this.autoupdateBoxCollider = true;
+    }
+
+    Start(): void {
+        this.generateBoxCollider();
+        console.log(this.getBoxColliderMesh());
     }
 
 }

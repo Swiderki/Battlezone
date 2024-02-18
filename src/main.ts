@@ -8,16 +8,33 @@ const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
 
 class Battlezone extends Engine {
-  player: PlayerTank;
+  //* Game objects
+  public player: PlayerTank;
   public enemies: GameObject[] = [];
+
+  //* Game controls
+  public keysPressed: Set<string> = new Set();
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);
 
     this.player = new PlayerTank(this, [0, 0, 0]);
-    const { width, height } = this.getCanvas.getBoundingClientRect();
-    this.player.playerCrosshair = new Crosshair(width, height);
+    this.player.playerCrosshair = new Crosshair();
   }
+
+  addEventListeners() {
+    document.addEventListener("keydown", this.handleKeyDown.bind(this));
+    document.addEventListener("keyup", this.handleKeyUp.bind(this));
+  }
+
+  handleKeyDown(e: KeyboardEvent) {
+    this.keysPressed.add(e.key);
+  }
+
+  handleKeyUp(e: KeyboardEvent) {
+    this.keysPressed.delete(e.key);
+  }
+
 
   spawnTank() {
     if(!this.currentScene) {
@@ -29,15 +46,6 @@ class Battlezone extends Engine {
     this.currentScene.addGameObject(enemy);
   }
 
-  handlePlayerMove(e: KeyboardEvent) {
-    if(!this.mainCamera) return;
-    if (e.key === "w") this.player.move(0, 0, 1);
-    if (e.key === "s") this.player.move(0, 0, -1);
-    if (e.key === "a") this.player.move(-1, 0, 0);
-    if (e.key === "d") this.player.move(1, 0, 0);
-    if (e.key === "e") this.mainCamera.rotate({x: 0, y: 1, z: 0}, Math.PI / 180 * 5);
-    if (e.key === "q") this.mainCamera.rotate({x: 0, y: -1, z: 0}, Math.PI / 180 * 5);
-  }
 
   override Start(): void {
     this.setResolution(1280, 720);
@@ -60,23 +68,23 @@ class Battlezone extends Engine {
     console.log(mainGUI.elements);
 
     // assign main camera to player
+    // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
     // add player to the scene
     mainScene.addGameObject(this.player);
 
-    // add player controls
-    document.addEventListener("keydown", this.handlePlayerMove.bind(this));
+    // add all essential event listeners 
+    this.addEventListeners();
 
+    //* start the main scene
+    mainScene.started = true;
+    
     // test purpose only
     this.spawnTank();
-   
-    console.log(Vector.dotP({x: 1, y: 0, z: 1}, {x: -1, y: 0, z: -1}))
-    console.log(Vector.dotP({x: 2, y: 0, z: 2}, {x: -2, y: 0, z: -2}))
-    console.log(Vector.length({x: 2, y: 0, z: 2}));
   }
 
   override Update(): void {
-
+    this.player.handlePlayerMove(this.keysPressed);
   }
 }
 
