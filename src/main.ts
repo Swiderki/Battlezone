@@ -58,23 +58,24 @@ class Battlezone extends Engine {
     const mainSceneId = this.addScene(mainScene);
     this.setCurrentScene(mainSceneId);
 
+    // assign main camera to player
+    // we use 'component' binding similar to unity one
+    this.player.playerCamera = this.mainCamera!;
+
     // create GUI and add it to the scene
     const mainGUI = new GUI(this.getCanvas, this.getCanvas.getContext("2d")!);
     const mainGUIId = mainScene.addGUI(mainGUI);
     mainScene.setCurrentGUI(mainGUIId);
 
     // add radar
-    this.radar = new Radar(this.enemies, camera, this.player);
+    this.radar = new Radar(this.enemies, this.player.playerCamera!, this.player);
 
     // add player GUIs to the mainGUI
     mainGUI.addElement(this.player.playerCrosshair!);
     mainGUI.addElement(this.radar);
-    
+
     console.log(mainGUI.elements);
 
-    // assign main camera to player
-    // we use 'component' binding similar to unity one
-    this.player.playerCamera = this.mainCamera!;
     // add player to the scene
     mainScene.addGameObject(this.player);
 

@@ -55,13 +55,13 @@ class Radar implements GUIElement {
         ctx.beginPath();
         ctx.moveTo(centerX, this.topMargin + this.radius);
         ctx.lineTo(
-        -this.radius * Math.sin(fovRad / 2) + centerX,
-        -this.radius * Math.cos(fovRad / 2) + this.topMargin + this.radius
+            -this.radius * Math.sin(fovRad / 2) + centerX,
+            -this.radius * Math.cos(fovRad / 2) + this.topMargin + this.radius
         );
         ctx.moveTo(centerX, this.topMargin + this.radius);
         ctx.lineTo(
-        -this.radius * Math.sin(-fovRad / 2) + centerX,
-        -this.radius * Math.cos(fovRad / 2) + this.topMargin + this.radius
+            -this.radius * Math.sin(-fovRad / 2) + centerX,
+            -this.radius * Math.cos(fovRad / 2) + this.topMargin + this.radius
         );
         ctx.stroke();
 
