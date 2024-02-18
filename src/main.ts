@@ -3,19 +3,15 @@ import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
 import Crosshair from "./gameObjects/gui/crosshair";
+import Radar from "./gameObjects/gui/radar";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
 
 class Battlezone extends Engine {
   player: PlayerTank;
-  enemies: GameObject[] = [
-    new Enemy([10, 0, 30]),
-    new Enemy([90, 0, 30]),
-    new Enemy([10, 0, 70]),
-    new Enemy([10, 0, 10]),
-    new Enemy([20, 0, -50]),
-  ];
+  enemies: GameObject[] = [];
+  radar: Radar | null = null;
 
   //* Game controls
   public keysPressed: Set<string> = new Set();
@@ -39,7 +35,6 @@ class Battlezone extends Engine {
   handleKeyUp(e: KeyboardEvent) {
     this.keysPressed.delete(e.key);
   }
-
 
   spawnTank() {
     if (!this.currentScene) {
@@ -68,8 +63,13 @@ class Battlezone extends Engine {
     const mainGUIId = mainScene.addGUI(mainGUI);
     mainScene.setCurrentGUI(mainGUIId);
 
+    // add radar
+    this.radar = new Radar(this.enemies, camera, this.player);
+
     // add player GUIs to the mainGUI
     mainGUI.addElement(this.player.playerCrosshair!);
+    mainGUI.addElement(this.radar);
+    
     console.log(mainGUI.elements);
 
     // assign main camera to player
@@ -77,6 +77,8 @@ class Battlezone extends Engine {
     this.player.playerCamera = this.mainCamera!;
     // add player to the scene
     mainScene.addGameObject(this.player);
+
+    // this.enemies.forEach(enemy => mainScene.addGameObject(enemy));
 
     // add all essential event listeners 
     this.addEventListeners();
@@ -86,12 +88,10 @@ class Battlezone extends Engine {
     
     // test purpose only
     this.spawnTank();
-<<<<<<< HEAD
   }
 
   override Update(): void {
     this.player.handlePlayerMove(this.keysPressed);
-    this.drawRadar();
   }
 }
 
