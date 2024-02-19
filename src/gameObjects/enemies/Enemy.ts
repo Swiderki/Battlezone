@@ -8,6 +8,9 @@ class Enemy extends PhysicalGameObject {
         this.autoupdateBoxCollider = true;
     }
 
+    Start(): void {
+        this.generateBoxCollider();
+    }
     moveTo(destiny: Vec3D) {
 
     }

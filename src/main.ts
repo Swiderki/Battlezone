@@ -15,7 +15,7 @@ class Battlezone extends Engine {
     // new Enemy([-60, 0, 0], [0.2, 0.2, 0.2])
   ];
   terrain: GameObject[] = [
-    
+
   ]
 
   // playerUI
@@ -49,7 +49,7 @@ class Battlezone extends Engine {
       return;
     }
 
-    const enemy = new Enemy([0, 0, 60], [0.2, 0.2, 0.2]);
+    const enemy = new Enemy([0, 0, 60], [.07, .07, .07]);
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
   }
@@ -57,7 +57,7 @@ class Battlezone extends Engine {
 
   override Start(): void {
     this.setResolution(1280, 720);
-    const camera = new Camera(60, 0.1, 1000, [0, 12, 0], [0, 0, 1]);
+    const camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
     // Scene set up
     const mainScene = new Scene();
 
