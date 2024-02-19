@@ -4,15 +4,27 @@ import Battlezone from "../../main";
 import Enemy from "../enemies/Enemy";
 import { QuaternionUtils } from "drake-engine";
 import { checkVectorSimilarity, rayCast } from "../../util/rayCast";
+import Bullet from "../misc/Bullet";
+import { BulletOverlap } from "../overlaps/BulletOverlap";
 
 
 class PlayerTank extends PhysicalGameObject {
-    public playerCamera?: Camera;
-    public playerCrosshair?: Crosshair;
-    public enemies: GameObject[];
+    // constants
+    private bulletSpeed = 300;
+
+    // references
+    playerCamera?: Camera;
+    playerCrosshair?: Crosshair;
+    enemies: GameObject[];
+    game: Battlezone;
+
+    // shooting
+    shootDelay = false
+
     constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
         super('public/empty.obj', { position, size, rotation });
         this.enemies = game.enemies;
+        this.game = game;
     }
     
     handleCamera(): void {
@@ -56,11 +68,13 @@ class PlayerTank extends PhysicalGameObject {
             QuaternionUtils.rotateVector(q, this.playerCamera!.lookDir, rotatedVector);
             this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
         }
-
+        if(e.has('z')) {
+            this.shoot();
+        }
     }
 
-    handleCrosshair(): void {
-        
+
+    handleCrosshair(): void {    
         if(this.playerCrosshair === undefined || this.playerCamera === undefined){
             return;
         }
@@ -73,6 +87,24 @@ class PlayerTank extends PhysicalGameObject {
                 this.playerCrosshair!.isTargeting = true;
             }
         })
+    }
+
+    shoot() {
+        if(this.shootDelay) return;
+        this.shootDelay = true;
+        const bullet = new Bullet(Object.values(Vector.add(this.position, this.playerCamera!.lookDir)) as Vec3DTuple, [.01, .01, .01]);
+        console.log(bullet.position);
+        this.game.currentScene.addGameObject(bullet);
+        bullet.Start = () => {
+            bullet.generateBoxCollider();
+            this.enemies.forEach(enemy => {
+                this.game.currentScene.addOverlap(
+                    new BulletOverlap(bullet, enemy, this.game)
+                );
+            });
+            bullet.velocity = Vector.multiply(this.playerCamera!.lookDir, this.bulletSpeed);
+        }
+        setTimeout(()=>this.shootDelay = false, 1000);
     }
 
     override move(x: number, y: number, z: number): void {

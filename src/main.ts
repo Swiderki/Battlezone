@@ -9,8 +9,16 @@ const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
 
 class Battlezone extends Engine {
+  //* gameObjects
   player: PlayerTank;
-  enemies: GameObject[] = [];
+  enemies: GameObject[] = [
+    // new Enemy([-60, 0, 0], [0.2, 0.2, 0.2])
+  ];
+  terrain: GameObject[] = [
+    
+  ]
+
+  // playerUI
   radar: Radar | null = null;
 
   //* Game controls
@@ -79,7 +87,7 @@ class Battlezone extends Engine {
     // add player to the scene
     mainScene.addGameObject(this.player);
 
-    // this.enemies.forEach(enemy => mainScene.addGameObject(enemy));
+    this.enemies.forEach(enemy => mainScene.addGameObject(enemy));
 
     // add all essential event listeners 
     this.addEventListeners();
@@ -94,6 +102,7 @@ class Battlezone extends Engine {
   override Update(): void {
     this.player.handlePlayerMove(this.keysPressed);
   }
+
 }
 
 export default Battlezone;
