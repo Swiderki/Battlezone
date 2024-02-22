@@ -8,12 +8,6 @@ class Bullet extends PhysicalGameObject {
         this.autoupdateBoxCollider = true;
     }
 
-    Start(): void {
-        this.generateBoxCollider();
-        console.log(this.getBoxColliderMesh());
-    }
-
-
 }
 
 export default Bullet;   

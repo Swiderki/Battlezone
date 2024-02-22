@@ -12,7 +12,7 @@ class Battlezone extends Engine {
   //* gameObjects
   player: PlayerTank;
   enemies: GameObject[] = [
-    // new Enemy([-60, 0, 0], [0.2, 0.2, 0.2])
+    new Enemy([-60, 0, 0], [.07, .07, .07])
   ];
   terrain: GameObject[] = [
 
@@ -28,7 +28,7 @@ class Battlezone extends Engine {
     super(canvas);
 
     this.player = new PlayerTank(this, [0, 0, 0]);
-    this.player.playerCrosshair = new Crosshair();
+    
   }
 
   addEventListeners() {
@@ -37,11 +37,11 @@ class Battlezone extends Engine {
   }
 
   handleKeyDown(e: KeyboardEvent) {
-    this.keysPressed.add(e.key);
+    this.keysPressed.add(e.key.toLocaleLowerCase());
   }
 
   handleKeyUp(e: KeyboardEvent) {
-    this.keysPressed.delete(e.key);
+    this.keysPressed.delete(e.key.toLocaleLowerCase());
   }
 
   spawnTank() {
@@ -49,7 +49,7 @@ class Battlezone extends Engine {
       return;
     }
 
-    const enemy = new Enemy([0, 0, 60], [.07, .07, .07]);
+    const enemy = new Enemy([10, 0, 60], [.07, .07, .07]);
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
   }
@@ -70,19 +70,9 @@ class Battlezone extends Engine {
     // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
 
-    // create GUI and add it to the scene
-    const mainGUI = new GUI(this.getCanvas, this.getCanvas.getContext("2d")!);
-    const mainGUIId = mainScene.addGUI(mainGUI);
-    mainScene.setCurrentGUI(mainGUIId);
+    const playerGUIId = mainScene.addGUI(this.player.playerGUI);
+    mainScene.setCurrentGUI(playerGUIId);
 
-    // add radar
-    this.radar = new Radar(this.enemies, this.player.playerCamera!, this.player);
-
-    // add player GUIs to the mainGUI
-    mainGUI.addElement(this.player.playerCrosshair!);
-    mainGUI.addElement(this.radar);
-
-    console.log(mainGUI.elements);
 
     // add player to the scene
     mainScene.addGameObject(this.player);
@@ -93,7 +83,7 @@ class Battlezone extends Engine {
     this.addEventListeners();
 
     //* start the main scene
-    mainScene.started = true;
+    mainScene._started = true;
     
     // test purpose only
     this.spawnTank();

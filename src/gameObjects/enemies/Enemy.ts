@@ -6,13 +6,14 @@ class Enemy extends PhysicalGameObject {
         super('public/objects/tanks/tank.obj', { position, size, rotation });
         // this.showBoxcollider = true;
         this.autoupdateBoxCollider = true;
+        this.showBoxcollider = true;
     }
 
     Start(): void {
         this.generateBoxCollider();
     }
     moveTo(destiny: Vec3D) {
-
+        
     }
 }
 
