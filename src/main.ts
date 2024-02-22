@@ -1,9 +1,11 @@
-import { Engine, Camera, Scene, GameObject, Vector, GUI } from "drake-engine";
+import { Engine, Camera, Scene, GameObject, Vector, GUI, QuaternionUtils } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
 import Crosshair from "./gameObjects/gui/crosshair";
 import Radar from "./gameObjects/gui/radar";
+import Obstacle from "./gameObjects/obstacles/Obstacle";
+import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -14,10 +16,7 @@ class Battlezone extends Engine {
   enemies: GameObject[] = [
     new Enemy([-60, 0, 0], [.07, .07, .07])
   ];
-  terrain: GameObject[] = [
-
-  ]
-
+  obstacles: Obstacle[] = [];
   // playerUI
   radar: Radar | null = null;
 
@@ -54,6 +53,16 @@ class Battlezone extends Engine {
     this.currentScene.addGameObject(enemy);
   }
 
+  spawnObstacle() {
+    if (!this.currentScene) return;
+
+    const obstacle = new Obstacle({ position: [20, 0, 50], size: [0.1, 0.1, 0.1] });
+    this.obstacles.push(obstacle);
+    this.currentScene.addGameObject(obstacle);
+    obstacle.Start = () => {
+      this.currentScene.addOverlap(new PlayerObstacleOverlap(this.player, obstacle));
+    };
+  }
 
   override Start(): void {
     this.setResolution(1280, 720);
@@ -77,9 +86,9 @@ class Battlezone extends Engine {
     // add player to the scene
     mainScene.addGameObject(this.player);
 
-    this.enemies.forEach(enemy => mainScene.addGameObject(enemy));
+    this.enemies.forEach((enemy) => mainScene.addGameObject(enemy));
 
-    // add all essential event listeners 
+    // add all essential event listeners
     this.addEventListeners();
 
     //* start the main scene
@@ -87,12 +96,12 @@ class Battlezone extends Engine {
     
     // test purpose only
     this.spawnTank();
+    this.spawnObstacle();
   }
 
   override Update(): void {
     this.player.handlePlayerMove(this.keysPressed);
   }
-
 }
 
 export default Battlezone;
