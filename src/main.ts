@@ -1,9 +1,11 @@
-import { Engine, Camera, Scene, GameObject, Vector, GUI } from "drake-engine";
+import { Engine, Camera, Scene, GameObject, Vector, GUI, QuaternionUtils } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
 import Crosshair from "./gameObjects/gui/crosshair";
 import Radar from "./gameObjects/gui/radar";
+import Obstacle from "./gameObjects/obstacles/Obstacle";
+import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -14,10 +16,7 @@ class Battlezone extends Engine {
   enemies: GameObject[] = [
     // new Enemy([-60, 0, 0], [0.2, 0.2, 0.2])
   ];
-  terrain: GameObject[] = [
-
-  ]
-
+  obstacles: Obstacle[] = [];
   // playerUI
   radar: Radar | null = null;
 
@@ -44,16 +43,87 @@ class Battlezone extends Engine {
     this.keysPressed.delete(e.key);
   }
 
-  spawnTank() {
-    if (!this.currentScene) {
-      return;
+  handlePlayerMove() {
+    const VELOCITY_NORMALIZATION = 100;
+    const prevPosition = structuredClone(this.player.position);
+
+    if (this.keysPressed.has("w")) {
+      this.player.move(
+        this.player.playerCamera!.lookDir.x * this.deltaTime * VELOCITY_NORMALIZATION,
+        this.player.playerCamera!.lookDir.y * this.deltaTime * VELOCITY_NORMALIZATION,
+        this.player.playerCamera!.lookDir.z * this.deltaTime * VELOCITY_NORMALIZATION
+      );
+    }
+    if (this.keysPressed.has("s")) {
+      this.player.move(
+        -this.player.playerCamera!.lookDir.x * this.deltaTime * VELOCITY_NORMALIZATION,
+        -this.player.playerCamera!.lookDir.y * this.deltaTime * VELOCITY_NORMALIZATION,
+        -this.player.playerCamera!.lookDir.z * this.deltaTime * VELOCITY_NORMALIZATION
+      );
+    }
+    if (this.keysPressed.has("e")) {
+      this.player.playerCamera?.rotate({ x: 0, y: 1, z: 0 }, (Math.PI / 180) * 1);
+    }
+    if (this.keysPressed.has("q")) {
+      this.player.playerCamera?.rotate({ x: 0, y: -1, z: 0 }, (Math.PI / 180) * 1);
+    }
+    // TODO implement better way to rotate vectors
+    // TODO this one kinda sucks
+    if (this.keysPressed.has("a")) {
+      const q = { x: 0, y: 0, z: 0, w: 0 };
+      QuaternionUtils.setFromAxisAngle(q, { x: 0, y: 1, z: 0 }, (-Math.PI / 180) * 90);
+
+      const rotatedVector = Vector.zero();
+      QuaternionUtils.rotateVector(q, this.player.playerCamera!.lookDir, rotatedVector);
+      this.player.move(
+        rotatedVector.x * this.deltaTime * VELOCITY_NORMALIZATION,
+        rotatedVector.y * this.deltaTime * VELOCITY_NORMALIZATION,
+        rotatedVector.z * this.deltaTime * VELOCITY_NORMALIZATION
+      );
+    }
+    if (this.keysPressed.has("d")) {
+      const q = { x: 0, y: 0, z: 0, w: 0 };
+      QuaternionUtils.setFromAxisAngle(q, { x: 0, y: 1, z: 0 }, (Math.PI / 180) * 90);
+
+      const rotatedVector = Vector.zero();
+      QuaternionUtils.rotateVector(q, this.player.playerCamera!.lookDir, rotatedVector);
+      this.player.move(
+        rotatedVector.x * this.deltaTime * VELOCITY_NORMALIZATION,
+        rotatedVector.y * this.deltaTime * VELOCITY_NORMALIZATION,
+        rotatedVector.z * this.deltaTime * VELOCITY_NORMALIZATION
+      );
+    }
+    if (this.keysPressed.has("z")) {
+      this.player.shoot();
     }
 
-    const enemy = new Enemy([0, 0, 60], [.07, .07, .07]);
+    // check for collision with obstacles
+    for (const overlap of this.currentScene.overlaps.values()) {
+      if (overlap.isHappening()) {
+        /** @todo wyswietlac komunikat blocked w gui */
+        this.player.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
+      }
+    }
+  }
+
+  spawnTank() {
+    if (!this.currentScene) return;
+
+    const enemy = new Enemy([0, 0, 60], [0.07, 0.07, 0.07]);
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
   }
 
+  spawnObstacle() {
+    if (!this.currentScene) return;
+
+    const obstacle = new Obstacle({ position: [20, 0, 50], size: [0.1, 0.1, 0.1] });
+    this.obstacles.push(obstacle);
+    this.currentScene.addGameObject(obstacle);
+    obstacle.Start = () => {
+      this.currentScene.addOverlap(new PlayerObstacleOverlap(this.player, obstacle));
+    };
+  }
 
   override Start(): void {
     this.setResolution(1280, 720);
@@ -87,22 +157,19 @@ class Battlezone extends Engine {
     // add player to the scene
     mainScene.addGameObject(this.player);
 
-    this.enemies.forEach(enemy => mainScene.addGameObject(enemy));
+    this.enemies.forEach((enemy) => mainScene.addGameObject(enemy));
 
-    // add all essential event listeners 
+    // add all essential event listeners
     this.addEventListeners();
 
-    //* start the main scene
-    mainScene.started = true;
-    
     // test purpose only
     this.spawnTank();
+    this.spawnObstacle();
   }
 
   override Update(): void {
-    this.player.handlePlayerMove(this.keysPressed);
+    this.handlePlayerMove();
   }
-
 }
 
 export default Battlezone;
