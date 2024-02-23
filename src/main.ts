@@ -1,8 +1,7 @@
-import { Engine, Camera, Scene, GameObject, Vector, GUI, QuaternionUtils } from "drake-engine";
+import { Engine, Camera, Scene, GameObject } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
-import Crosshair from "./gameObjects/gui/crosshair";
 import Radar from "./gameObjects/gui/radar";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
 import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
@@ -13,9 +12,7 @@ if (!canvas) throw new Error("unable to find canvas");
 class Battlezone extends Engine {
   //* gameObjects
   player: PlayerTank;
-  enemies: GameObject[] = [
-    new Enemy([-60, 0, 0], [.07, .07, .07])
-  ];
+  enemies: GameObject[] = [new Enemy([-60, 0, 0], [0.07, 0.07, 0.07])];
   obstacles: Obstacle[] = [];
   // playerUI
   radar: Radar | null = null;
@@ -27,7 +24,6 @@ class Battlezone extends Engine {
     super(canvas);
 
     this.player = new PlayerTank(this, [0, 0, 0]);
-    
   }
 
   addEventListeners() {
@@ -48,7 +44,7 @@ class Battlezone extends Engine {
       return;
     }
 
-    const enemy = new Enemy([10, 0, 60], [.07, .07, .07]);
+    const enemy = new Enemy([10, 0, 60], [0.07, 0.07, 0.07]);
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
   }
@@ -68,7 +64,13 @@ class Battlezone extends Engine {
     this.setResolution(1280, 720);
     const camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
     // Scene set up
-    const mainScene = new Scene();
+    const sceneBg = new GameObject("objects/background.obj", { color: "#00f" });
+    const mainScene = new Scene({
+      object: sceneBg,
+      position: { x: 0, y: this.canvas.height / 2 },
+      repeat: true,
+      rotationLikeCameraSpeed: 5,
+    });
 
     mainScene.setMainCamera(camera, this.width, this.height); // add camera to scene
 
@@ -82,7 +84,6 @@ class Battlezone extends Engine {
     const playerGUIId = mainScene.addGUI(this.player.playerGUI);
     mainScene.setCurrentGUI(playerGUIId);
 
-
     // add player to the scene
     mainScene.addGameObject(this.player);
 
@@ -93,14 +94,14 @@ class Battlezone extends Engine {
 
     //* start the main scene
     mainScene._started = true;
-    
+
     // test purpose only
     this.spawnTank();
     this.spawnObstacle();
   }
 
   override Update(): void {
-    this.player.handlePlayerMove(this.keysPressed);
+    this.player.handlePlayerMove(this.keysPressed, this.deltaTime);
   }
 }
 
