@@ -5,6 +5,7 @@ import Enemy from "./gameObjects/enemies/Enemy";
 import Radar from "./gameObjects/gui/radar";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
 import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
+import { enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg } from "./gameObjects/gui/messages";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -83,6 +84,11 @@ class Battlezone extends Engine {
 
     const playerGUIId = mainScene.addGUI(this.player.playerGUI);
     mainScene.setCurrentGUI(playerGUIId);
+
+    // game messages
+    this.player.playerGUI.addElement(enemyInRangeMsg);
+    this.player.playerGUI.addElement(enemyLocationMsg);
+    this.player.playerGUI.addElement(motionBlockedMsg);
 
     // add player to the scene
     mainScene.addGameObject(this.player);

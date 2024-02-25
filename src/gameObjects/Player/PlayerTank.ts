@@ -6,6 +6,7 @@ import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../overlaps/BulletOverlap";
 import HealthBar from "../gui/healthbar";
 import Radar from "../gui/radar";
+import { motionBlockedMsg } from "../gui/messages";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
@@ -106,10 +107,13 @@ class PlayerTank extends PhysicalGameObject {
     // check for collision with obstacles
     for (const overlap of this.game.currentScene.overlaps.values()) {
       if (overlap.isHappening()) {
-        /** @todo wyswietlac komunikat blocked w gui */
+        motionBlockedMsg.text = "MOTION BLOCKED BY OBSTACLE";
         this.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
+        return;
       }
     }
+
+    motionBlockedMsg.text = "";
   }
 
   handleCrosshair(): void {

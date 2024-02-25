@@ -1,5 +1,6 @@
 import { Camera, GUIElement, GameObject } from "drake-engine";
 import PlayerTank from "../Player/PlayerTank";
+import { enemyInRangeMsg, enemyLocationMsg } from "./messages";
 
 class Radar implements GUIElement {
   //* GUIElement stuff
@@ -70,6 +71,7 @@ class Radar implements GUIElement {
     );
     ctx.stroke();
 
+    let tooFarEnemies = 0;
     for (const enemy of this.enemies) {
       const distanceToEnemy = Math.hypot(
         this.player.position.x - enemy.position.x,
@@ -77,20 +79,37 @@ class Radar implements GUIElement {
       );
 
       if (distanceToEnemy > this.radius) {
+        tooFarEnemies++;
         continue;
       }
+
+      enemyInRangeMsg.text = "ENEMY IN RANGE";
 
       const x = -this.player.position.x + enemy.position.x;
       const y = this.player.position.z - enemy.position.z;
       const theta = -this.camera.rotation.y * 2;
 
+      const xPrimo = x * Math.cos(theta) - y * Math.sin(theta);
+      const yPrimo = x * Math.sin(theta) + y * Math.cos(theta);
+
+      if (xPrimo > 0 && xPrimo > Math.abs(yPrimo)) {
+        enemyLocationMsg.text = "ENEMY TO RIGHT";
+      } else if (yPrimo > 0 && yPrimo > Math.abs(xPrimo)) {
+        enemyLocationMsg.text = "ENEMY TO REAR";
+      } else if (xPrimo < 0 && yPrimo > xPrimo) {
+        enemyLocationMsg.text = "ENEMY TO LEFT";
+      } else {
+        enemyLocationMsg.text = "";
+      }
+
+      console.log(xPrimo, yPrimo);
+
       ctx.fillStyle = "#fff";
-      ctx.fillRect(
-        centerX + (x * Math.cos(theta) - y * Math.sin(theta)),
-        this.radius + this.topMargin + (x * Math.sin(theta) + y * Math.cos(theta)),
-        3,
-        3
-      );
+      ctx.fillRect(centerX + xPrimo, this.radius + this.topMargin + yPrimo, 3, 3);
+    }
+
+    if (tooFarEnemies === this.enemies.length) {
+      enemyInRangeMsg.text = "";
     }
   }
 }
