@@ -10,8 +10,9 @@ import { motionBlockedMsg } from "../gui/messages";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
-  private bulletSpeed = 10;
-  private boxColliderSize = 50;
+  private bulletSpeed = 10 as const;
+  private boxColliderSize = 50 as const;
+  bulletRange = 200 as const;
 
   // references to game objects
   playerCamera?: Camera;
@@ -33,13 +34,12 @@ class PlayerTank extends PhysicalGameObject {
   isBlockedByObstacle = false;
 
   constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
-    super("public/empty.obj", { position, size, rotation });
+    super("empty.obj", { position, size, rotation });
     this.enemies = game.enemies;
     this.isHollow = true;
     this.game = game;
     this.playerGUI = new GUI(this.game.getCanvas, this.game.getCanvas.getContext("2d")!);
     this.playerHealthBar = new HealthBar(5, this.playerGUI);
-    this.createPlayerGUI();
     this.boxCollider = [
       // box collider jest przesuniety do przodu troche zeby bylo go widac (dev)
       {
@@ -55,7 +55,7 @@ class PlayerTank extends PhysicalGameObject {
     ];
   }
 
-  Start(): void {
+  override Start(): void {
     this.createPlayerGUI();
   }
 
@@ -142,7 +142,8 @@ class PlayerTank extends PhysicalGameObject {
       [0.01, 0.01, 0.01]
     );
     console.log(bullet.position);
-    this.game.currentScene.addGameObject(bullet);
+    const bulletId = this.game.currentScene.addGameObject(bullet);
+
     bullet.Start = () => {
       bullet.generateBoxCollider();
       this.enemies.forEach((enemy) => {
@@ -150,6 +151,17 @@ class PlayerTank extends PhysicalGameObject {
       });
       bullet.velocity = Vector.multiply(this.playerCamera!.lookDir, this.bulletSpeed);
     };
+
+    const startPosition = { ...this.position };
+    bullet.Update = () => {
+      if (
+        Math.hypot(bullet.position.x - startPosition.x, bullet.position.z - startPosition.z) >
+        this.bulletRange
+      ) {
+        this.game.currentScene.removeGameObject(bulletId);
+      }
+    };
+
     setTimeout(() => (this.shootDelay = false), 1000);
   }
 

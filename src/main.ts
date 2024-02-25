@@ -2,7 +2,6 @@ import { Engine, Camera, Scene, GameObject } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
-import Radar from "./gameObjects/gui/radar";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
 import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
 import { enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg } from "./gameObjects/gui/messages";
@@ -15,11 +14,9 @@ class Battlezone extends Engine {
   player: PlayerTank;
   enemies: GameObject[] = [new Enemy([-60, 0, 0], [0.07, 0.07, 0.07])];
   obstacles: Obstacle[] = [];
-  // playerUI
-  radar: Radar | null = null;
 
   //* Game controls
-  public keysPressed: Set<string> = new Set();
+  keysPressed: Set<string> = new Set();
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);

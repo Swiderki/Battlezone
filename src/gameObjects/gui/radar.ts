@@ -4,18 +4,18 @@ import { enemyInRangeMsg, enemyLocationMsg } from "./messages";
 
 class Radar implements GUIElement {
   //* GUIElement stuff
-  public height: number;
-  public width: number;
-  public position: { x: number; y: number };
+  height: number;
+  width: number;
+  position: { x: number; y: number };
   //* references
-  public enemies: GameObject[];
-  public camera: Camera;
-  public player: PlayerTank;
+  enemies: GameObject[];
+  camera: Camera;
+  player: PlayerTank;
   //* Radar properties
-  public radius = 90;
-  public color = "#f0f";
-  public thickness = 3;
-  public topMargin = 30;
+  radius = 90;
+  color = "#f0f";
+  thickness = 3;
+  topMargin = 30;
 
   constructor(enemies: GameObject[], camera: Camera, player: PlayerTank) {
     this.width = 20;
@@ -26,7 +26,7 @@ class Radar implements GUIElement {
     this.player = player;
   }
 
-  public render(ctx: CanvasRenderingContext2D): void {
+  render(ctx: CanvasRenderingContext2D): void {
     if (!this.camera) return;
 
     const canvasWidth = ctx.canvas.getBoundingClientRect().width;
@@ -78,7 +78,7 @@ class Radar implements GUIElement {
         this.player.position.z - enemy.position.z
       );
 
-      if (distanceToEnemy > this.radius) {
+      if (distanceToEnemy > this.player.bulletRange) {
         tooFarEnemies++;
         continue;
       }
@@ -102,10 +102,15 @@ class Radar implements GUIElement {
         enemyLocationMsg.text = "";
       }
 
-      console.log(xPrimo, yPrimo);
+      const drawingScale = this.radius / this.player.bulletRange;
 
       ctx.fillStyle = "#fff";
-      ctx.fillRect(centerX + xPrimo, this.radius + this.topMargin + yPrimo, 3, 3);
+      ctx.fillRect(
+        centerX + xPrimo * drawingScale,
+        this.radius + this.topMargin + yPrimo * drawingScale,
+        3,
+        3
+      );
     }
 
     if (tooFarEnemies === this.enemies.length) {
