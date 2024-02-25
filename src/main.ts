@@ -69,7 +69,7 @@ class Battlezone extends Engine {
       object: sceneBg,
       position: { x: 0, y: this.canvas.height / 2 },
       repeat: true,
-      rotationLikeCameraSpeed: 5,
+      rotationLikeCameraSpeed: 10,
     });
 
     mainScene.setMainCamera(camera, this.width, this.height); // add camera to scene
