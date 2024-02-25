@@ -110,6 +110,7 @@ class Radar implements GUIElement {
 
     if (tooFarEnemies === this.enemies.length) {
       enemyInRangeMsg.text = "";
+      enemyLocationMsg.text = "";
     }
   }
 }
