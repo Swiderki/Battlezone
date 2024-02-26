@@ -76,7 +76,7 @@ class PlayerTank extends PhysicalGameObject {
 
   handlePlayerMove(e: Set<string>, deltaTime: number) {
     const VELOCITY_NORMALIZATION = 35;
-    const ROTATION_NORMALIZATION = 50;
+    const ROTATION_NORMALIZATION = 40;
 
     const prevPosition = { ...this.position };
     const movementDirection = (+e.has("w") - +e.has("s")) as 1 | 0 | -1;

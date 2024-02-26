@@ -99,7 +99,6 @@ class Enemy extends PhysicalGameObject {
 
     override Update(deltaTime: number): void {
         // move and shoot logic
-
     }
 }
 

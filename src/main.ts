@@ -78,12 +78,12 @@ class Battlezone extends Engine {
     this.setResolution(1280, 720);
     const camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
     // Scene set up
-    const sceneBg = new GameObject("objects/background.obj", { color: "#00f" });
+    const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
     const mainScene = new Scene({
       object: sceneBg,
       position: { x: 0, y: this.canvas.height / 2 },
       repeat: true,
-      rotationLikeCameraSpeed: 10,
+      rotationLikeCameraSpeed: 6,
     });
 
     mainScene.setMainCamera(camera, this.width, this.height); // add camera to scene
