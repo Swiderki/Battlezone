@@ -27,7 +27,7 @@ class Enemy extends PhysicalGameObject {
         this._tempRotation = {xAxis: 0, yAxis: 0, zAxis: 0}; //* to fix
     }
 
-    Start(): void {
+    override Start(): void {
         this.generateBoxCollider();
         // this.shootPlayer();
         // this.moveTo({x: 0, y: 0, z: 0});
@@ -97,10 +97,10 @@ class Enemy extends PhysicalGameObject {
 
     }
 
-    Update(deltaTime: number): void {
+    override Update(deltaTime: number): void {
         // move and shoot logic
 
     }
 }
 
-export default Enemy;   
+export default Enemy;

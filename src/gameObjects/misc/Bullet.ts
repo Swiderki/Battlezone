@@ -9,5 +9,4 @@ class Bullet extends PhysicalGameObject {
     }
 
 }
-
-export default Bullet;   
+export default Bullet;

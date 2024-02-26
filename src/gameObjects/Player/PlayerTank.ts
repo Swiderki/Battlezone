@@ -1,4 +1,4 @@
-import { Camera, GUI, GameObject, Line3D, PhysicalGameObject, QuaternionUtils, Vec3DTuple, Vector } from "drake-engine";
+import { Camera, GUI, GameObject, Line3D, PhysicalGameObject, Vec3DTuple, Vector } from "drake-engine";
 import Crosshair from "../gui/crosshair";
 import Battlezone from "../../main";
 import { rayCast } from "../../util/rayCast";
@@ -6,12 +6,14 @@ import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../overlaps/BulletOverlap";
 import HealthBar from "../gui/healthbar";
 import Radar from "../gui/radar";
+import { motionBlockedMsg } from "../gui/messages";
 import PlayerObstacleOverlap from "../overlaps/PlayerObstacleOverlap";
 
 class PlayerTank extends PhysicalGameObject {
-    // constants
-    private bulletSpeed = 60;
-    private boxColliderSize = 50;
+  // constants
+  private bulletSpeed = 10 as const;
+  private boxColliderSize = 50 as const;
+  bulletRange = 200 as const;
 
     // references to game objects
     playerCamera?: Camera;
@@ -23,108 +25,114 @@ class PlayerTank extends PhysicalGameObject {
     playerCrosshair?: Crosshair;
     playerHealthBar: HealthBar;
 
-    // shooting
-    shootDelay = false
+  // shooting
+  shootDelay = false;
 
-    // overrides 
-    override boxCollider: Line3D;
-    
-     // collisions
-    isBlockedByObstacle = false;
+  // overrides
+  override boxCollider: Line3D;
 
-    constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
-        super('public/empty.obj', { position, size, rotation });
-        this.enemies = game.enemies;
-        this.isHollow = true;
-        this.game = game;
-        this.playerGUI = new GUI(this.game.getCanvas, this.game.getCanvas.getContext('2d')!);
-        this.playerHealthBar = new HealthBar(5, this.playerGUI);
-        this.createPlayerGUI();
-        this.boxCollider = [
-            // box collider jest przesuniety do przodu troche zeby bylo go widac (dev)
-            {
-              x: this.position.x - this.boxColliderSize / 2,
-              y: this.position.y - this.boxColliderSize / 2,
-              z: this.position.z - this.boxColliderSize / 2,
-            },
-            {
-              x: this.position.x + this.boxColliderSize / 2,
-              y: this.position.y + this.boxColliderSize / 2,
-              z: this.position.z + this.boxColliderSize / 2,
-            },
-        ];
+  // collisions
+  isBlockedByObstacle = false;
+
+  constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
+    super("empty.obj", { position, size, rotation });
+    this.enemies = game.enemies;
+    this.isHollow = true;
+    this.game = game;
+    this.playerGUI = new GUI(this.game.getCanvas, this.game.getCanvas.getContext("2d")!);
+    this.playerHealthBar = new HealthBar(5, this.playerGUI);
+    this.boxCollider = [
+      // box collider jest przesuniety do przodu troche zeby bylo go widac (dev)
+      {
+        x: this.position.x - this.boxColliderSize / 2,
+        y: this.position.y - this.boxColliderSize / 2,
+        z: this.position.z - this.boxColliderSize / 2,
+      },
+      {
+        x: this.position.x + this.boxColliderSize / 2,
+        y: this.position.y + this.boxColliderSize / 2,
+        z: this.position.z + this.boxColliderSize / 2,
+      },
+    ];
+  }
+
+  override Start(): void {
+    this.createPlayerGUI();
+  }
+
+  createPlayerGUI() {
+    // create ale needed
+    this.playerCrosshair = new Crosshair();
+    this.radar = new Radar(this.enemies, this.playerCamera!, this);
+    // add everything to the GUI
+    this.playerGUI.addElement(this.playerCrosshair);
+    this.playerGUI.addElement(this.radar);
+  }
+
+  handleCamera(): void {
+    // pspsps
+    // oh well whatever nevermind
+  }
+
+  handlePlayerMove(e: Set<string>, deltaTime: number) {
+    const VELOCITY_NORMALIZATION = 35;
+    const ROTATION_NORMALIZATION = 50;
+
+    const prevPosition = { ...this.position };
+    const movementDirection = (+e.has("w") - +e.has("s")) as 1 | 0 | -1;
+
+    this.move(
+      this.playerCamera!.lookDir.x * movementDirection * deltaTime * VELOCITY_NORMALIZATION,
+      this.playerCamera!.lookDir.y * movementDirection * deltaTime * VELOCITY_NORMALIZATION,
+      this.playerCamera!.lookDir.z * movementDirection * deltaTime * VELOCITY_NORMALIZATION
+    );
+
+    if (e.has("d")) {
+      this.playerCamera?.rotate(
+        { x: 0, y: 1, z: 0 },
+        (Math.PI / 180) * (movementDirection || 1) * deltaTime * ROTATION_NORMALIZATION
+      );
     }
 
-    Start(): void {
-        this.createPlayerGUI();
-    }
-    
-    createPlayerGUI() {
-        // create ale needed 
-        this.playerCrosshair = new Crosshair();
-        this.radar = new Radar(this.enemies, this.playerCamera!, this);
-        // add everything to the GUI
-        this.playerGUI.addElement(this.playerCrosshair);
-        this.playerGUI.addElement(this.radar);
+    if (e.has("a")) {
+      this.playerCamera?.rotate(
+        { x: 0, y: -1, z: 0 },
+        (Math.PI / 180) * (movementDirection || 1) * deltaTime * ROTATION_NORMALIZATION
+      );
     }
 
-    handleCamera(): void {
-        // pspsps
-        // oh well whatever nevermind
+    if (e.has("z")) {
+      this.shoot();
     }
 
-    handlePlayerMove(e: Set<string>) {
-        const VELOCITY_NORMALIZATION = 100;
-        const prevPosition = structuredClone(this.position);
-        if(e.has("w")) 
-            this.move(this.playerCamera!.lookDir.x, this.playerCamera!.lookDir.y, this.playerCamera!.lookDir.z);
-        if(e.has("s")) 
-            this.move(-this.playerCamera!.lookDir.x, -this.playerCamera!.lookDir.y, -this.playerCamera!.lookDir.z);
-        if(e.has("e")) 
-            this.playerCamera?.rotate({x: 0, y: 1, z: 0}, Math.PI / 180 * 1)
-        if(e.has("q")) 
-            this.playerCamera?.rotate({x: 0, y: -1, z: 0}, Math.PI / 180 * 1)
-        // TODO implement better way to rotate vectors
-        // TODO this one kinda sucks  
-        if(e.has('a')) {
-            const rotatedVector = Vector.rotateVector([0, Math.PI / 180 * -90, 0], this.playerCamera!.lookDir);
-            this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
-        }
-        if(e.has('d')) {
-            const rotatedVector = Vector.rotateVector([0, Math.PI / 180 * 90, 0], this.playerCamera!.lookDir);
-            this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
-        }
-        if(e.has('z')) {
-            this.shoot();
-        }
-
-        // check for collision with obstacles
-        for (const overlap of this.game.currentScene.overlaps.values()) {
-        if (overlap.isHappening() && overlap instanceof PlayerObstacleOverlap) {
-          /** @todo wyswietlac komunikat blocked w gui */
-          this.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
-        }
+    // check for collision with obstacles
+    for (const overlap of this.game.currentScene.overlaps.values()) {
+      if (overlap.isHappening() && overlap instanceof PlayerObstacleOverlap) {
+        motionBlockedMsg.text = "MOTION BLOCKED BY OBSTACLE";
+        this.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
+        return;
       }
     }
+
+    motionBlockedMsg.text = "";
+  }
 
   handleCrosshair(): void {
     if (this.playerCrosshair === undefined || this.playerCamera === undefined) {
       return;
-
     }
 
     this.playerCrosshair.isTargeting = false;
 
     this.playerCrosshair.isTargeting = false;
-        this.enemies.some(enemy => {
-            if(enemy.boxCollider === null) return false; // prevent further errors
-            if(rayCast(this.position, this.playerCamera!.lookDir, enemy.boxCollider)) {
-                this.playerCrosshair!.isTargeting = true;
-                return true;
-            }
-            return false;
+    this.enemies.some((enemy) => {
+      if (enemy.boxCollider === null) return false; // prevent further errors
+      if (rayCast(this.position, this.playerCamera!.lookDir, enemy.boxCollider)) {
+        this.playerCrosshair!.isTargeting = true;
+        return true;
+      }
+      return false;
     });
-
   }
 
   shoot() {
@@ -135,8 +143,8 @@ class PlayerTank extends PhysicalGameObject {
       Object.values(Vector.add(this.position, this.playerCamera!.lookDir)) as Vec3DTuple,
       [0.01, 0.01, 0.01]
     );
-    
-    this.game.currentScene.addGameObject(bullet);
+    console.log(bullet.position);
+    const bulletId = this.game.currentScene.addGameObject(bullet);
 
     bullet.Start = () => {
       bullet.generateBoxCollider();
@@ -145,6 +153,17 @@ class PlayerTank extends PhysicalGameObject {
       });
       bullet.velocity = Vector.multiply(this.playerCamera!.lookDir, this.bulletSpeed);
     };
+
+    const startPosition = { ...this.position };
+    bullet.Update = () => {
+      if (
+        Math.hypot(bullet.position.x - startPosition.x, bullet.position.z - startPosition.z) >
+        this.bulletRange
+      ) {
+        this.game.currentScene.removeGameObject(bulletId);
+      }
+    };
+
     setTimeout(() => (this.shootDelay = false), 1000);
   }
 
