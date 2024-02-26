@@ -6,17 +6,18 @@ import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../overlaps/BulletOverlap";
 import HealthBar from "../gui/healthbar";
 import Radar from "../gui/radar";
+import PlayerObstacleOverlap from "../overlaps/PlayerObstacleOverlap";
 
 class PlayerTank extends PhysicalGameObject {
     // constants
-    private bulletSpeed = 10;
+    private bulletSpeed = 60;
     private boxColliderSize = 50;
 
     // references to game objects
     playerCamera?: Camera;
     enemies: GameObject[];
     game: Battlezone;
-    // references to playUI
+    // references to playerUI
     playerGUI: GUI;
     radar?: Radar;
     playerCrosshair?: Crosshair;
@@ -86,27 +87,11 @@ class PlayerTank extends PhysicalGameObject {
         // TODO implement better way to rotate vectors
         // TODO this one kinda sucks  
         if(e.has('a')) {
-            const q = { x: 0, y: 0, z: 0, w: 0 };
-            QuaternionUtils.setFromAxisAngle(
-                q,
-                { x: 0, y: 1, z: 0 },
-                -Math.PI / 180 * 90
-            );
-            
-            const rotatedVector = Vector.zero();
-            QuaternionUtils.rotateVector(q, this.playerCamera!.lookDir, rotatedVector);
+            const rotatedVector = Vector.rotateVector([0, Math.PI / 180 * -90, 0], this.playerCamera!.lookDir);
             this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
         }
         if(e.has('d')) {
-            const q = { x: 0, y: 0, z: 0, w: 0 };
-            QuaternionUtils.setFromAxisAngle(
-                q,
-                { x: 0, y: 1, z: 0 },
-                Math.PI / 180 * 90
-            );
-            
-            const rotatedVector = Vector.zero();
-            QuaternionUtils.rotateVector(q, this.playerCamera!.lookDir, rotatedVector);
+            const rotatedVector = Vector.rotateVector([0, Math.PI / 180 * 90, 0], this.playerCamera!.lookDir);
             this.move(rotatedVector.x, rotatedVector.y, rotatedVector.z);
         }
         if(e.has('z')) {
@@ -115,7 +100,7 @@ class PlayerTank extends PhysicalGameObject {
 
         // check for collision with obstacles
         for (const overlap of this.game.currentScene.overlaps.values()) {
-        if (overlap.isHappening()) {
+        if (overlap.isHappening() && overlap instanceof PlayerObstacleOverlap) {
           /** @todo wyswietlac komunikat blocked w gui */
           this.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
         }
@@ -145,12 +130,14 @@ class PlayerTank extends PhysicalGameObject {
   shoot() {
     if (this.shootDelay) return;
     this.shootDelay = true;
+
     const bullet = new Bullet(
       Object.values(Vector.add(this.position, this.playerCamera!.lookDir)) as Vec3DTuple,
       [0.01, 0.01, 0.01]
     );
-    console.log(bullet.position);
+    
     this.game.currentScene.addGameObject(bullet);
+
     bullet.Start = () => {
       bullet.generateBoxCollider();
       this.enemies.forEach((enemy) => {

@@ -1,6 +1,7 @@
 import { GameObject, Overlap } from "drake-engine";
 import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
+import Enemy from "../enemies/Enemy";
 
 export class BulletOverlap extends Overlap {
     private game: Battlezone;
@@ -15,10 +16,12 @@ export class BulletOverlap extends Overlap {
     }
   
     override onOverlap(): void {
-      console.log(123)
       if(!this.game.currentScene) 
         return;
-
-      this.game.currentScene.animatedObjectDestruction(this.target.id);
+      if(this.target instanceof Enemy) {
+        this.game.currentScene.animatedObjectDestruction(this.target.id);
+        this.game.removeEnemy(this.target);
+      }
+      this.game.currentScene.removeGameObject(this.bullet.id);
     }
-  }
+}

@@ -2,7 +2,6 @@ import { Engine, Camera, Scene, GameObject, Vector, GUI, QuaternionUtils } from 
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
-import Crosshair from "./gameObjects/gui/crosshair";
 import Radar from "./gameObjects/gui/radar";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
 import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
@@ -14,8 +13,12 @@ class Battlezone extends Engine {
   //* gameObjects
   player: PlayerTank;
   enemies: GameObject[] = [
-    new Enemy([-60, 0, 0], [.07, .07, .07])
+    new Enemy(this, [-60, 0, 0], [.07, .07, .07]),
+    new Enemy(this, [60, 0, 0], [.07, .07, .07]),
+    new Enemy(this, [-60, 0, -60], [.07, .07, .07]),
+    new Enemy(this, [0, 0, -60], [.07, .07, .07]),
   ];
+  
   obstacles: Obstacle[] = [];
   // playerUI
   radar: Radar | null = null;
@@ -28,6 +31,13 @@ class Battlezone extends Engine {
 
     this.player = new PlayerTank(this, [0, 0, 0]);
     
+  }
+
+  removeEnemy(enemy: Enemy) {
+    const index = this.enemies.indexOf(enemy);
+    if (index !== -1) {
+        this.enemies.splice(index, 1);
+    }
   }
 
   addEventListeners() {
@@ -48,8 +58,11 @@ class Battlezone extends Engine {
       return;
     }
 
-    const enemy = new Enemy([10, 0, 60], [.07, .07, .07]);
+    const enemy = new Enemy(this, [10, 0, 60], [.07, .07, .07]);
     this.enemies.push(enemy);
+    enemy.Update = () => {
+      // console.log(enemy.desiredAngle)
+    }
     this.currentScene.addGameObject(enemy);
   }
 
