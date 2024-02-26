@@ -24,7 +24,7 @@ class Enemy extends PhysicalGameObject {
         this.autoupdateBoxCollider = true;
         this.showBoxcollider = true;
         this.game = game;
-        this._tempRotation = {xAxis: 0, yAxis: 0, zAxis: 0}; //* to fix
+        this._tempRotation = {xAxis: 0, yAxis: Math.PI, zAxis: 0}; //* to fix
     }
 
     override Start(): void {
@@ -40,12 +40,11 @@ class Enemy extends PhysicalGameObject {
     // TODO resolve error with degrees greater than PI
     rotateTowards(destiny: Vec3D) {
         const direction = Vector.normalize(Vector.subtract(destiny, this.position));
-        const rotationY = Math.atan2(direction.x, direction.z);
-        const rotationY2 = Math.atan2(direction.x, direction.z) % Math.PI / 2;
-        console.log(rotationY, rotationY2)
+        const rotationY = Math.PI + Math.atan2(direction.x, direction.z);
         this.desiredAngle = [0, rotationY, 0];
+        console.table([this.desiredAngle, Object.values(this._tempRotation)]);
         // console.log(direction, this.position, this.desiredAngle);
-        this.angularVelocity = [0, rotationY > 0 ? this.rotationSpeed : -this.rotationSpeed, 0]
+        this.angularVelocity = [0, rotationY < Math.PI ? this.rotationSpeed : -this.rotationSpeed, 0]
     }
 
     moveTo(destiny: Vec3D) {
@@ -61,7 +60,10 @@ class Enemy extends PhysicalGameObject {
         const distanceToSquared = (v1: Vec3D, v2: Vec3D) => Math.pow(v1.x-v2.x, 2) + Math.pow(v1.y-v2.y, 2) +Math.pow(v1.z-v2.z, 2);
         if(this.desiredAngle !== null) {
             if(Math.abs(this._tempRotation.yAxis - this.desiredAngle[1]) <= Math.abs(this.rotationSpeed)) {
-                this.rotate(this._tempRotation.xAxis - this.desiredAngle[0], this._tempRotation.yAxis - this.desiredAngle[1], this._tempRotation.zAxis - this.desiredAngle[2])
+                this.rotate(this._tempRotation.xAxis - this.desiredAngle[0], 
+                    this._tempRotation.yAxis - this.desiredAngle[1], 
+                    this._tempRotation.zAxis - this.desiredAngle[2]
+                )
                 this.angularVelocity = null;
                 this.desiredAngle = null;
             }
@@ -93,9 +95,15 @@ class Enemy extends PhysicalGameObject {
         QuaternionUtils.normalize(this.rotationQuaternion);
         super.applyQuaternion(this.rotationQuaternion);
 
-        this._tempRotation.xAxis += xAxis;
-        this._tempRotation.yAxis += yAxis;
-        this._tempRotation.zAxis += zAxis;
+        this._tempRotation.xAxis = (this._tempRotation.xAxis + xAxis) % (Math.PI * 2);
+        if(this._tempRotation.xAxis < 0)
+            this._tempRotation.xAxis = Math.PI * 2 - this._tempRotation.xAxis;
+        this._tempRotation.yAxis = (this._tempRotation.yAxis + yAxis) % (Math.PI * 2);
+        if(this._tempRotation.yAxis < 0)
+            this._tempRotation.yAxis = Math.PI * 2 - this._tempRotation.yAxis;
+        this._tempRotation.zAxis = (this._tempRotation.zAxis + zAxis) % (Math.PI * 2);
+        if(this._tempRotation.zAxis < 0)
+            this._tempRotation.zAxis = Math.PI * 2 - this._tempRotation.zAxis;
     }
 
     doRandomMove() {

@@ -13,10 +13,10 @@ class Battlezone extends Engine {
   //* gameObjects
   player: PlayerTank;
   enemies: GameObject[] = [
-    new Enemy(this, [-60, 0, 0], [.07, .07, .07]),
-    new Enemy(this, [60, 0, 0], [.07, .07, .07]),
-    new Enemy(this, [-60, 0, -60], [.07, .07, .07]),
-    new Enemy(this, [0, 0, -60], [.07, .07, .07]),
+    // new Enemy(this, [-60, 0, 0], [.07, .07, .07]),
+    // new Enemy(this, [60, 0, 0], [.07, .07, .07]),
+    // new Enemy(this, [-60, 0, -60], [.07, .07, .07]),
+    // new Enemy(this, [0, 0, -60], [.07, .07, .07]),
   ];
   
   obstacles: Obstacle[] = [];
