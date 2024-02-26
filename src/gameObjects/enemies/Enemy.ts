@@ -1,15 +1,15 @@
-import { PhysicalGameObject, Rotation3D, Rotation3DTuple, Vec3D, Vec3DTuple, Vector } from "drake-engine";
+import { PhysicalGameObject, QuaternionUtils, Rotation3D, Rotation3DTuple, Vec3D, Vec3DTuple, Vector } from "drake-engine";
 import Battlezone from "../../main";
 
 class Enemy extends PhysicalGameObject {
     // constants
     private movementSpeed = 5;
-    rotationSpeed = Math.PI / 180 * .3; 
+    rotationSpeed = Math.PI / 180 * .5; 
 
     // rotation
     desiredAngle: Rotation3DTuple | null = null
     angularVelocity: Rotation3DTuple | null = null;
-
+    rotationQuaternion = { x: 0, y: 0, z: 0, w: 0 }; 
     // move
     private destiny: Vec3D | null = null;
 
@@ -29,7 +29,7 @@ class Enemy extends PhysicalGameObject {
 
     override Start(): void {
         this.generateBoxCollider();
-        // this.shootPlayer();
+        this.shootPlayer();
         // this.moveTo({x: 0, y: 0, z: 0});
     }
 
@@ -82,8 +82,17 @@ class Enemy extends PhysicalGameObject {
     }
 
     override rotate(xAxis: number, yAxis: number, zAxis: number): void {
-        super.rotate(xAxis, yAxis, zAxis);
-        // TODO fix this way is horrible
+        if(xAxis === 0 && zAxis === 0 && yAxis === 0) return;
+        const vT = {x: xAxis, y: yAxis, z: zAxis};
+
+        QuaternionUtils.setFromAxisAngle(
+            this.rotationQuaternion,
+            Vector.normalize(vT),
+            Vector.length(vT)
+        );
+        QuaternionUtils.normalize(this.rotationQuaternion);
+        super.applyQuaternion(this.rotationQuaternion);
+
         this._tempRotation.xAxis += xAxis;
         this._tempRotation.yAxis += yAxis;
         this._tempRotation.zAxis += zAxis;
@@ -99,6 +108,7 @@ class Enemy extends PhysicalGameObject {
 
     override Update(deltaTime: number): void {
         // move and shoot logic
+        
     }
 }
 
