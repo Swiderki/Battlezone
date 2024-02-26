@@ -148,8 +148,11 @@ class PlayerTank extends PhysicalGameObject {
 
     bullet.Start = () => {
       bullet.generateBoxCollider();
-      this.enemies.forEach((enemy) => {
+      this.game.enemies.forEach((enemy) => {
         this.game.currentScene.addOverlap(new BulletOverlap(bullet, enemy, this.game));
+      });
+      this.game.obstacles.forEach((obj) => {
+        this.game.currentScene.addOverlap(new BulletOverlap(bullet, obj, this.game));
       });
       bullet.velocity = Vector.multiply(this.playerCamera!.lookDir, this.bulletSpeed);
     };

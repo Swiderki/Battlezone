@@ -10,7 +10,7 @@ class HealthBar {
   position: { x: number; y: number };
 
   //* constants
-  private _heartGap = 30 + 10;
+  private _heartGap = 40 + 10;
 
   constructor(startingHealth: number, gui: GUI) {
     this.position = { x: 40, y: 40 };
@@ -57,18 +57,31 @@ class HealthBar {
 }
 
 class HeartIcon extends Icon {
-  override width = 700;
-  override height = 700;
+  override width = 250;
+  override height = 250;
   override fillColor = "#fff";
 
-  constructor(position: Vec2D, width = 100, height = 100, strokeColor = "#fff") {
+  constructor(position: Vec2D, width = 100, height = 100, strokeColor = "#f0f") {
     super(
-      "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z",
+      "M82.5 14L54 1L37.5 41L1 68.5L33 84H161L188.5 68.5L139.5 41L90.9444 18M82.5 14H173V18H90.9444M82.5 14L90.9444 18",
       width,
       height,
       position,
-      strokeColor
-    );
+      strokeColor,
+      );
+  }
+
+  override render(ctx: CanvasRenderingContext2D): void {
+    ctx.lineWidth = 9;
+    const path = new Path2D(this.path);
+    ctx.save();
+    ctx.translate(this.position.x, this.position.y);
+    const scale = Math.min(this.width / ctx.canvas.width, this.height / ctx.canvas.height);
+    ctx.scale(scale, scale);
+    ctx.strokeStyle = this.strokeColor;
+
+    ctx.stroke(path);
+    ctx.restore();
   }
 }
 
