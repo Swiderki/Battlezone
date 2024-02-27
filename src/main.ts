@@ -13,6 +13,7 @@ class Battlezone extends Engine {
   //* gameObjects
   player: PlayerTank;
   enemies: GameObject[] = [
+    new Enemy(this, [10, 0, 60], [.07, .07, .07])
     // new Enemy(this, [-60, 0, 0], [.07, .07, .07]),
     // new Enemy(this, [60, 0, 0], [.07, .07, .07]),
     // new Enemy(this, [-60, 0, -60], [.07, .07, .07]),
@@ -57,9 +58,7 @@ class Battlezone extends Engine {
 
     const enemy = new Enemy(this, [10, 0, 60], [.07, .07, .07]);
     this.enemies.push(enemy);
-    enemy.Update = () => {
-      // console.log(enemy.desiredAngle)
-    }
+
     this.currentScene.addGameObject(enemy);
   }
 
@@ -115,7 +114,7 @@ class Battlezone extends Engine {
     mainScene._started = true;
 
     // test purpose only
-    this.spawnTank();
+    // this.spawnTank();
     this.spawnObstacle();
   }
 

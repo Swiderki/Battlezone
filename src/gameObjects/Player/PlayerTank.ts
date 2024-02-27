@@ -69,11 +69,6 @@ class PlayerTank extends PhysicalGameObject {
     this.playerGUI.addElement(this.radar);
   }
 
-  handleCamera(): void {
-    // pspsps
-    // oh well whatever nevermind
-  }
-
   handlePlayerMove(e: Set<string>, deltaTime: number) {
     const VELOCITY_NORMALIZATION = 35;
     const ROTATION_NORMALIZATION = 40;
@@ -143,7 +138,7 @@ class PlayerTank extends PhysicalGameObject {
       Object.values(Vector.add(this.position, this.playerCamera!.lookDir)) as Vec3DTuple,
       [0.01, 0.01, 0.01]
     );
-    console.log(bullet.position);
+
     const bulletId = this.game.currentScene.addGameObject(bullet);
 
     bullet.Start = () => {

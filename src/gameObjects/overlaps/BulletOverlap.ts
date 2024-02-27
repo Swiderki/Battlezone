@@ -2,6 +2,7 @@ import { GameObject, Overlap } from "drake-engine";
 import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
 import Enemy from "../enemies/Enemy";
+import PlayerTank from "../Player/PlayerTank";
 
 export class BulletOverlap extends Overlap {
     private game: Battlezone;
@@ -18,10 +19,14 @@ export class BulletOverlap extends Overlap {
     override onOverlap(): void {
       if(!this.game.currentScene) 
         return;
-        if(this.target instanceof Enemy) {
+      if(this.target instanceof Enemy) {
         this.game.currentScene.animatedObjectDestruction(this.target.id);
         this.game.removeEnemy(this.target);
       }
+      if(this.target instanceof PlayerTank) {
+        console.log('boom');
+      }
+
       this.game.currentScene.removeGameObject(this.bullet.id);
     }
 }
