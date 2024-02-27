@@ -2,6 +2,8 @@ import { GameObject, Overlap } from "drake-engine";
 import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
 import Enemy from "../enemies/Enemy";
+import { NORMAL_TANK_POINTS } from "../../util/consts";
+import { BestScore } from "../../util/BestScore";
 import PlayerTank from "../Player/PlayerTank";
 
 export class BulletOverlap extends Overlap {
@@ -17,16 +19,24 @@ export class BulletOverlap extends Overlap {
     }
   
     override onOverlap(): void {
+      if(!this.game.currentScene) return;
+
+      if(this.target instanceof Enemy) {
       if(!this.game.currentScene) 
         return;
       if(this.target instanceof Enemy) {
         this.game.currentScene.animatedObjectDestruction(this.target.id);
         this.game.removeEnemy(this.target);
+        this.game.player.score += NORMAL_TANK_POINTS;
+        // save score every time player scores to avoid situation of losing their
+        // points in case of unfinishing the game properly (e.g. power loss)
+        BestScore.checkAndSave(this.game.player.score)
       }
+
       if(this.target instanceof PlayerTank) {
         console.log('boom');
       }
-
+    }
       this.game.currentScene.removeGameObject(this.bullet.id);
     }
 }
