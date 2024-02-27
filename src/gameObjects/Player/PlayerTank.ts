@@ -8,8 +8,8 @@ import { BestScore } from "../../util/BestScore";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
-  private bulletSpeed = 10 as const;
-  private boxColliderSize = 10 as const;
+  private bulletSpeed = 100 as const;
+  private boxColliderSize = 20 as const;
   bulletRange = 200 as const;
 
   // references to game objects
