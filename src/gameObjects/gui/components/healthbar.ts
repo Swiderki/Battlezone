@@ -15,10 +15,10 @@ class HealthBar implements GUIComponent {
   constructor() {
     this.position = { x: GUI_MARGIN, y: GUI_MARGIN };
     this._currentHealth = INITIAL_PLAYER_HEALTH;
-    this.addStartingHealth();
+    this.applyInitialHealth();
   }
 
-  private addStartingHealth() {
+  private applyInitialHealth() {
     for (let i = 0; i < this._currentHealth; i++) {
       const heartIcon = new HeartIcon({
         x: this.position.x + i * this._heartGap,
@@ -34,9 +34,7 @@ class HealthBar implements GUIComponent {
 
   set currentHealth(value: number) {
     if (this._currentHealth === value || value <= 0) return; // no change or health below zero
-    this.playerGUI.elements.forEach((v, k) => {
-      if(v instanceof HeartIcon) this.playerGUI.removeElement(k);
-    });
+    this._heartIcons = [];
     for (let i = 0; i < value; i++) {
       const healthIcon = new HeartIcon({
         x: this.position.x + i * this._heartGap,

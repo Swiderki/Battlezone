@@ -9,6 +9,10 @@ import PlayOverlay from "./gameObjects/gui/overlays/PlayOverlay";
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
 
+type Overlays = {
+  play?: PlayOverlay;
+};
+
 class Battlezone extends Engine {
   gameState: "lobby" | "play" | "death" = "lobby";
 
@@ -21,9 +25,10 @@ class Battlezone extends Engine {
     // new Enemy(this, [-60, 0, -60], [.07, .07, .07]),
     // new Enemy(this, [0, 0, -60], [.07, .07, .07]),
   ];
-  gui: GUI;
-
   obstacles: Obstacle[] = [];
+
+  gui: GUI;
+  overlays: Overlays = {};
 
   //* Game controls
   keysPressed: Set<string> = new Set();
@@ -102,9 +107,9 @@ class Battlezone extends Engine {
     const playerGUIId = mainScene.addGUI(this.gui);
     mainScene.setCurrentGUI(playerGUIId);
 
-    const playOverlay = new PlayOverlay(this);
-    playOverlay.applyOverlay();
-    this.gui.addElement(playOverlay);
+    this.overlays.play = new PlayOverlay(this);
+    this.overlays.play.applyOverlay();
+    this.gui.addElement(this.overlays.play);
 
     // add player to the scene
     mainScene.addGameObject(this.player);
