@@ -12,7 +12,7 @@ import PlayerObstacleOverlap from "../overlaps/PlayerObstacleOverlap";
 class PlayerTank extends PhysicalGameObject {
   // constants
   private bulletSpeed = 10 as const;
-  private boxColliderSize = 50 as const;
+  private boxColliderSize = 10 as const;
   bulletRange = 200 as const;
 
     // references to game objects
@@ -67,11 +67,6 @@ class PlayerTank extends PhysicalGameObject {
     // add everything to the GUI
     this.playerGUI.addElement(this.playerCrosshair);
     this.playerGUI.addElement(this.radar);
-  }
-
-  handleCamera(): void {
-    // pspsps
-    // oh well whatever nevermind
   }
 
   handlePlayerMove(e: Set<string>, deltaTime: number) {
@@ -143,7 +138,7 @@ class PlayerTank extends PhysicalGameObject {
       Object.values(Vector.add(this.position, this.playerCamera!.lookDir)) as Vec3DTuple,
       [0.01, 0.01, 0.01]
     );
-    console.log(bullet.position);
+
     const bulletId = this.game.currentScene.addGameObject(bullet);
 
     bullet.Start = () => {
