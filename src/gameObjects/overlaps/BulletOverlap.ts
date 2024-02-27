@@ -4,6 +4,7 @@ import Bullet from "../misc/Bullet";
 import Enemy from "../enemies/Enemy";
 import { NORMAL_TANK_POINTS } from "../../util/consts";
 import { BestScore } from "../../util/BestScore";
+import PlayerTank from "../Player/PlayerTank";
 
 export class BulletOverlap extends Overlap {
     private game: Battlezone;
@@ -21,6 +22,9 @@ export class BulletOverlap extends Overlap {
       if(!this.game.currentScene) return;
 
       if(this.target instanceof Enemy) {
+      if(!this.game.currentScene) 
+        return;
+      if(this.target instanceof Enemy) {
         this.game.currentScene.animatedObjectDestruction(this.target.id);
         this.game.removeEnemy(this.target);
         this.game.player.score += NORMAL_TANK_POINTS;
@@ -29,6 +33,10 @@ export class BulletOverlap extends Overlap {
         BestScore.checkAndSave(this.game.player.score)
       }
 
+      if(this.target instanceof PlayerTank) {
+        console.log('boom');
+      }
+    }
       this.game.currentScene.removeGameObject(this.bullet.id);
     }
 }
