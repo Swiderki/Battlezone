@@ -1,15 +1,10 @@
-import { Camera, GUI, GameObject, Line3D, PhysicalGameObject, Vec3DTuple, Vector } from "drake-engine";
-import Crosshair from "../gui/crosshair";
+import { Camera,  GameObject, Line3D, PhysicalGameObject, Vec3DTuple, Vector } from "drake-engine";
 import Battlezone from "../../main";
-import { rayCast } from "../../util/rayCast";
 import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../overlaps/BulletOverlap";
-import HealthBar from "../gui/healthbar";
-import Radar from "../gui/radar";
-import { motionBlockedMsg } from "../gui/messages";
+import { motionBlockedMsg } from "../gui/components/messages";
 import PlayerObstacleOverlap from "../overlaps/PlayerObstacleOverlap";
 import { BestScore } from "../../util/BestScore";
-import Score from "../gui/Score";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
@@ -22,12 +17,6 @@ class PlayerTank extends PhysicalGameObject {
   enemies: GameObject[];
   game: Battlezone;
   
-  // references to playerUI
-  playerGUI: GUI;
-  radar?: Radar;
-  playerCrosshair?: Crosshair;
-  playerHealthBar: HealthBar;
-  scoreGUI?: Score;
   
   // shooting
   shootDelay = false;
@@ -48,9 +37,7 @@ class PlayerTank extends PhysicalGameObject {
     this.isHollow = true;
     this.game = game;
 
-    this.playerGUI = new GUI(this.game.getCanvas, this.game.getCanvas.getContext("2d")!);
 
-    this.playerHealthBar = new HealthBar(5, this.playerGUI);
     this.boxCollider = [
       // box collider jest przesuniety do przodu troche zeby bylo go widac (dev)
       {
@@ -66,19 +53,7 @@ class PlayerTank extends PhysicalGameObject {
     ];
   }
 
-  override Start(): void {
-    this.createPlayerGUI();
-  }
-
-  createPlayerGUI() {
-    // create ale needed
-    this.playerCrosshair = new Crosshair();
-    this.radar = new Radar(this.enemies, this.playerCamera!, this);
-    this.scoreGUI = new Score(this);
-    // add everything to the GUI
-    this.playerGUI.addElement(this.playerCrosshair);
-    this.playerGUI.addElement(this.radar);
-  }
+  override Start(): void {}
 
   handlePlayerMove(e: Set<string>, deltaTime: number) {
     const VELOCITY_NORMALIZATION = 35;
@@ -123,23 +98,6 @@ class PlayerTank extends PhysicalGameObject {
     motionBlockedMsg.text = "";
   }
 
-  handleCrosshair(): void {
-    if (this.playerCrosshair === undefined || this.playerCamera === undefined) {
-      return;
-    }
-
-    this.playerCrosshair.isTargeting = false;
-
-    this.playerCrosshair.isTargeting = false;
-    this.enemies.some((enemy) => {
-      if (enemy.boxCollider === null) return false; // prevent further errors
-      if (rayCast(this.position, this.playerCamera!.lookDir, enemy.boxCollider)) {
-        this.playerCrosshair!.isTargeting = true;
-        return true;
-      }
-      return false;
-    });
-  }
 
   shoot() {
     if (this.shootDelay) return;
@@ -220,9 +178,6 @@ class PlayerTank extends PhysicalGameObject {
     ];
   }
 
-  override Update(): void {
-    this.handleCrosshair();
-  }
 }
 
 export default PlayerTank;

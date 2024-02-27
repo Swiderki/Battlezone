@@ -1,5 +1,5 @@
 import { GUIText } from "drake-engine";
-import { GUI_MARGIN } from "../../util/consts";
+import { GUI_MARGIN } from "../../../util/consts";
 
 type EnemyInRange = {
   text: "" | "ENEMY IN RANGE";

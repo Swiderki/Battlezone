@@ -1,7 +1,7 @@
 import { Camera, GUIElement, GameObject } from "drake-engine";
-import PlayerTank from "../Player/PlayerTank";
+import PlayerTank from "../../Player/PlayerTank";
 import { enemyInRangeMsg, enemyLocationMsg } from "./messages";
-import { GUI_MARGIN } from "../../util/consts";
+import { GUI_MARGIN } from "../../../util/consts";
 
 class Radar implements GUIElement {
   //* GUIElement stuff

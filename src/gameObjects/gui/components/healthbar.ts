@@ -1,8 +1,8 @@
-import { GUI, Icon, Vec2D } from "drake-engine";
+import { GUIComponent, Icon, Vec2D } from "drake-engine";
+import { GUI_MARGIN, INITIAL_PLAYER_HEALTH } from "../../../util/consts";
 
-class HealthBar {
+class HealthBar implements GUIComponent {
   //* references
-  private playerGUI: GUI;
   private _heartIcons: HeartIcon[] = [];
 
   //* healthBar specific values
@@ -10,23 +10,21 @@ class HealthBar {
   position: { x: number; y: number };
 
   //* constants
-  private _heartGap = 40 + 10;
+  private _heartGap = GUI_MARGIN + 10;
 
-  constructor(startingHealth: number, gui: GUI) {
-    this.position = { x: 40, y: 40 };
-    this.playerGUI = gui;
-    this._currentHealth = startingHealth;
+  constructor() {
+    this.position = { x: GUI_MARGIN, y: GUI_MARGIN };
+    this._currentHealth = INITIAL_PLAYER_HEALTH;
     this.addStartingHealth();
   }
 
   private addStartingHealth() {
     for (let i = 0; i < this._currentHealth; i++) {
-      const healthIcon = new HeartIcon({
+      const heartIcon = new HeartIcon({
         x: this.position.x + i * this._heartGap,
         y: this.position.y,
       });
-      this._heartIcons.push(healthIcon);
-      this.playerGUI.addElement(healthIcon);
+      this._heartIcons.push(heartIcon);
     }
   }
 
@@ -50,9 +48,14 @@ class HealthBar {
         y: this.position.y,
       });
       this._heartIcons.push(healthIcon);
-      this.playerGUI.addElement(healthIcon);
     }
     this._currentHealth = value;
+  }
+
+  render(ctx: CanvasRenderingContext2D) {
+    for (const heart of this._heartIcons) {
+      heart.render(ctx);
+    }
   }
 }
 
@@ -67,8 +70,8 @@ class HeartIcon extends Icon {
       width,
       height,
       position,
-      strokeColor,
-      );
+      strokeColor
+    );
   }
 
   override render(ctx: CanvasRenderingContext2D): void {
