@@ -20,7 +20,7 @@ class Enemy extends PhysicalGameObject {
     readonly rotationSpeed = Math.PI / 180 * .8; 
     
     // shooting
-    private readonly bulletSpeed = 10;
+    private readonly bulletSpeed = 100;
     private readonly shootingRange = 50;
     private readonly bulletRange = 100;
     private readonly shootDelay = 5 * 1000;

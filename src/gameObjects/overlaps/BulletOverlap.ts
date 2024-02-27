@@ -21,9 +21,7 @@ export class BulletOverlap extends Overlap {
     override onOverlap(): void {
       if(!this.game.currentScene) return;
 
-      if(this.target instanceof Enemy) {
-      if(!this.game.currentScene) 
-        return;
+      //* handle enemy collision
       if(this.target instanceof Enemy) {
         this.game.currentScene.animatedObjectDestruction(this.target.id);
         this.game.removeEnemy(this.target);
@@ -32,11 +30,12 @@ export class BulletOverlap extends Overlap {
         // points in case of unfinishing the game properly (e.g. power loss)
         BestScore.checkAndSave(this.game.player.score)
       }
-
+      
+      //* handle player collision
       if(this.target instanceof PlayerTank) {
-        console.log('boom');
+        this.target.playerHealthBar.currentHealth -= 1;
       }
-    }
+
       this.game.currentScene.removeGameObject(this.bullet.id);
     }
 }

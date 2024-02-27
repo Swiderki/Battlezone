@@ -35,18 +35,13 @@ class HealthBar {
   }
 
   set currentHealth(value: number) {
-    const healthDiff = value - this._currentHealth;
-    if (healthDiff === 0) return; // no change
-    if (healthDiff < 0) {
-      // descres amount of health
-      this._heartIcons.slice(0, value);
-      this._currentHealth = value;
-      return;
-    }
-    // add new hearts
-    for (let i = 0; i < healthDiff; i++) {
+    if (this._currentHealth === value || value <= 0) return; // no change or health below zero
+    this.playerGUI.elements.forEach((v, k) => {
+      if(v instanceof HeartIcon) this.playerGUI.removeElement(k);
+    });
+    for (let i = 0; i < value; i++) {
       const healthIcon = new HeartIcon({
-        x: this.position.x + (this._currentHealth + i) * this._heartGap,
+        x: this.position.x + i * this._heartGap,
         y: this.position.y,
       });
       this._heartIcons.push(healthIcon);
