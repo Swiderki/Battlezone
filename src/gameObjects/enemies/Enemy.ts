@@ -77,8 +77,8 @@ class Enemy extends PhysicalGameObject {
         console.log(this.actionQueue)
     }
 
-    idle() {
-        this.enqueueAction({ type: ActionType.Idle });
+    idle(time: number) {
+        this.enqueueAction({ type: ActionType.Idle, data: time });
     }
 
     rotateTowards(destiny: Vec3D) {
@@ -235,7 +235,7 @@ class Enemy extends PhysicalGameObject {
         const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));
         if(distanceToPlayer < this.shootingRange && !this.shootOverheat && !this.isTargeting) {
             this.shootPlayer();
-            this.idle();
+            this.idle(1000);
         }
     }
 }
