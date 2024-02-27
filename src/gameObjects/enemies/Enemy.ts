@@ -11,18 +11,24 @@ enum ActionType {
 
 interface Action {
     type: ActionType;
-    data: Vec3D | Rotation3DTuple;
+    data?: Vec3D | Rotation3DTuple;
 }
 
 class Enemy extends PhysicalGameObject {
-    // constants
-    private movementSpeed = 5;
-    private bulletSpeed = 10;
-    rotationSpeed = Math.PI / 180 * .5; 
+    // movement constants
+    private readonly movementSpeed = 5;
+    readonly rotationSpeed = Math.PI / 180 * .8; 
+    
+    // shooting
+    private readonly bulletSpeed = 10;
+    private readonly shootingRange = 50;
+    private readonly bulletRange = 100;
+    private readonly shootDelay = 5 * 1000;
+    private shootOverheat = false;
 
     // rotation
-    angularVelocity: Rotation3DTuple | null = null;
-    rotationQuaternion = { x: 0, y: 0, z: 0, w: 0 }; 
+    private angularVelocity: Rotation3DTuple | null = null;
+    private rotationQuaternion = { x: 0, y: 0, z: 0, w: 0 }; 
 
     // action queue
     private actionQueue: Action[] = [];
@@ -31,7 +37,11 @@ class Enemy extends PhysicalGameObject {
     private _tempRotation: Rotation3D;
 
     //* references
-    game: Battlezone
+    private game: Battlezone
+    
+    
+
+    //* Start
     constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
         super('public/objects/tanks/tank.obj', { position, size, rotation });
         // this.showBoxcollider = true;
@@ -42,14 +52,10 @@ class Enemy extends PhysicalGameObject {
     }
 
     override Start(): void {
-        console.log("first")
         this.generateBoxCollider();
-        // this.shootPlayer();
-        this.shoot();
-        this.moveTo(this.game.player.position)
-        // this.moveTo({x: 0, y: 0, z: 0});
     }
 
+    //* Queue management
     private enqueueAction(action: Action) {
         this.actionQueue.push(action);
     }
@@ -58,8 +64,11 @@ class Enemy extends PhysicalGameObject {
         return this.actionQueue.shift();
     }
 
+
+    //* Player Actions
     shootPlayer() {
         this.rotateTowards(this.game.player.position);
+        this.enqueueAction({ type: ActionType.Shoot });
     }
 
     rotateTowards(destiny: Vec3D) {
@@ -78,6 +87,76 @@ class Enemy extends PhysicalGameObject {
         this.enqueueAction({type: ActionType.Move, data: destiny});
     }
     
+    //? Instead of calling this method just enqueue Shoot action
+    //? It shoots in direction tank is facing
+    private shoot() {
+        if (this.shootOverheat) return;
+        this.shootOverheat = true;
+        const bullet = new Bullet(
+            Object.values(this.position) as Vec3DTuple,
+            [0.01, 0.01, 0.01]
+        );
+        
+        const bulletId = this.game.currentScene.addGameObject(bullet);
+      
+        bullet.Start = () => {
+            if(bullet.vertecies.length < 1) return;
+
+            bullet.generateBoxCollider();
+            
+            this.game.obstacles.forEach((obj) => {
+                this.game.currentScene.addOverlap(new BulletOverlap(bullet, obj, this.game));
+            });
+            
+            this.game.currentScene.addOverlap(new BulletOverlap(bullet, this.game.player, this.game));
+            
+            // cause tank model is facing backwards we simply use back vector
+            bullet.velocity = Vector.multiply(
+                Vector.rotateVector(Object.values(this._tempRotation) as Rotation3DTuple, Vector.back()),
+                this.bulletSpeed
+            );
+        };
+
+        const startPosition = { ...this.position };
+        bullet.Update = () => {
+            if (
+                Math.hypot(bullet.position.x - startPosition.x, bullet.position.z - startPosition.z) >
+                this.bulletRange
+            ) {
+                this.game.currentScene.removeGameObject(bulletId);
+            }
+        };
+
+        setTimeout(() => this.shootOverheat = false, this.shootDelay);
+    }
+    
+    // override default rotate func
+    override rotate(xAxis: number, yAxis: number, zAxis: number): void {
+        if(xAxis === 0 && zAxis === 0 && yAxis === 0) return;
+        const vT = {x: xAxis, y: yAxis, z: zAxis};
+        
+        // preform rotation
+        QuaternionUtils.setFromAxisAngle(
+            this.rotationQuaternion,
+            Vector.normalize(vT),
+            Vector.length(vT)
+        );
+        QuaternionUtils.normalize(this.rotationQuaternion);
+        super.applyQuaternion(this.rotationQuaternion);
+            
+        // Move rotation range form [-pi;pi] to [0;2pi]
+        this._tempRotation.xAxis = (this._tempRotation.xAxis + xAxis) % (Math.PI * 2);
+        if(this._tempRotation.xAxis < 0)
+        this._tempRotation.xAxis = Math.PI * 2 - this._tempRotation.xAxis;
+        this._tempRotation.yAxis = (this._tempRotation.yAxis + yAxis) % (Math.PI * 2);
+        if(this._tempRotation.yAxis < 0)
+        this._tempRotation.yAxis = Math.PI * 2 - this._tempRotation.yAxis;
+        this._tempRotation.zAxis = (this._tempRotation.zAxis + zAxis) % (Math.PI * 2);
+        if(this._tempRotation.zAxis < 0)
+        this._tempRotation.zAxis = Math.PI * 2 - this._tempRotation.zAxis;
+    }
+
+    //* handle all actions
     override updatePhysics(deltaTime: number): void {
         // rotation has priority over movement
         if(this.angularVelocity === null)
@@ -85,7 +164,7 @@ class Enemy extends PhysicalGameObject {
         
         // prevent crash when there is not action
         if(this.actionQueue.length === 0) return;
-
+    
         // helper
         const distanceToSquared = (v1: Vec3D, v2: Vec3D) => Math.pow(v1.x-v2.x, 2) + Math.pow(v1.y-v2.y, 2) +Math.pow(v1.z-v2.z, 2);
         
@@ -123,55 +202,13 @@ class Enemy extends PhysicalGameObject {
         }
     }
 
-    override rotate(xAxis: number, yAxis: number, zAxis: number): void {
-        if(xAxis === 0 && zAxis === 0 && yAxis === 0) return;
-        const vT = {x: xAxis, y: yAxis, z: zAxis};
-
-        QuaternionUtils.setFromAxisAngle(
-            this.rotationQuaternion,
-            Vector.normalize(vT),
-            Vector.length(vT)
-        );
-        QuaternionUtils.normalize(this.rotationQuaternion);
-        super.applyQuaternion(this.rotationQuaternion);
-        
-        // Move rotation range form [-pi;pi] to [0;2pi]
-        this._tempRotation.xAxis = (this._tempRotation.xAxis + xAxis) % (Math.PI * 2);
-        if(this._tempRotation.xAxis < 0)
-            this._tempRotation.xAxis = Math.PI * 2 - this._tempRotation.xAxis;
-        this._tempRotation.yAxis = (this._tempRotation.yAxis + yAxis) % (Math.PI * 2);
-        if(this._tempRotation.yAxis < 0)
-            this._tempRotation.yAxis = Math.PI * 2 - this._tempRotation.yAxis;
-        this._tempRotation.zAxis = (this._tempRotation.zAxis + zAxis) % (Math.PI * 2);
-        if(this._tempRotation.zAxis < 0)
-            this._tempRotation.zAxis = Math.PI * 2 - this._tempRotation.zAxis;
-    }
-
-    private shoot() {
-        const bullet = new Bullet(
-            Object.values(this.position) as Vec3DTuple,
-            [0.01, 0.01, 0.01]
-        );
-        
-        const bulletId = this.game.currentScene.addGameObject(bullet);
-      
-        bullet.Start = () => {
-            if(bullet.vertecies.length < 1) return;
-            bullet.generateBoxCollider();
-            this.game.obstacles.forEach((obj) => {
-                console.log(obj)
-              this.game.currentScene.addOverlap(new BulletOverlap(bullet, obj, this.game));
-            });
-            this.game.currentScene.addOverlap(new BulletOverlap(bullet, this.game.player, this.game));
-            bullet.velocity = Vector.multiply(
-                Vector.rotateVector(Object.values(this._tempRotation) as Rotation3DTuple, Vector.forward()),
-                this.bulletSpeed
-            );
-        };
-    }
-
+    //* tank behavior
     override Update(deltaTime: number): void {
         // move and shoot logic
+        const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));
+        if(distanceToPlayer < this.shootingRange && !this.shootOverheat) {
+            this.shootPlayer();
+        }
     }
 }
 
