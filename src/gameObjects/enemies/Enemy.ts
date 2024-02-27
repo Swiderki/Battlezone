@@ -7,17 +7,20 @@ enum ActionType {
     Rotate,
     Move,
     Shoot,
+    StartTargeting, 
+    EndTargeting,
+    Idle
 }
 
 interface Action {
     type: ActionType;
-    data?: Vec3D | Rotation3DTuple;
+    data?: Vec3D | Rotation3DTuple | number;
 }
 
 class Enemy extends PhysicalGameObject {
     // movement constants
     private readonly movementSpeed = 5;
-    readonly rotationSpeed = Math.PI / 180 * .8; 
+    readonly rotationSpeed = Math.PI / 180 * 1; 
     
     // shooting
     private readonly bulletSpeed = 100;
@@ -25,6 +28,9 @@ class Enemy extends PhysicalGameObject {
     private readonly bulletRange = 100;
     private readonly shootDelay = 5 * 1000;
     private shootOverheat = false;
+    
+    // behavior
+    private isTargeting = false;
 
     // rotation
     private angularVelocity: Rotation3DTuple | null = null;
@@ -38,8 +44,6 @@ class Enemy extends PhysicalGameObject {
 
     //* references
     private game: Battlezone
-    
-    
 
     //* Start
     constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
@@ -64,11 +68,17 @@ class Enemy extends PhysicalGameObject {
         return this.actionQueue.shift();
     }
 
-
     //* Player Actions
     shootPlayer() {
+        this.enqueueAction({ type: ActionType.StartTargeting });
         this.rotateTowards(this.game.player.position);
         this.enqueueAction({ type: ActionType.Shoot });
+        this.enqueueAction({ type: ActionType.EndTargeting });
+        console.log(this.actionQueue)
+    }
+
+    idle() {
+        this.enqueueAction({ type: ActionType.Idle });
     }
 
     rotateTowards(destiny: Vec3D) {
@@ -157,18 +167,14 @@ class Enemy extends PhysicalGameObject {
     }
 
     //* handle all actions
-    override updatePhysics(deltaTime: number): void {
-        // rotation has priority over movement
-        if(this.angularVelocity === null)
-            super.updatePhysics(deltaTime);
-        
-        // prevent crash when there is not action
+    private handleActions() {
+        //! prevent crash when there is not action
         if(this.actionQueue.length === 0) return;
     
-        // helper
+        //* helper
         const distanceToSquared = (v1: Vec3D, v2: Vec3D) => Math.pow(v1.x-v2.x, 2) + Math.pow(v1.y-v2.y, 2) +Math.pow(v1.z-v2.z, 2);
         
-        // perform actions based on action queue
+        //* perform actions based on action queue
         switch(this.actionQueue[0].type) {
             case ActionType.Rotate:
                 const desiredAngle = this.actionQueue[0].data as Rotation3DTuple;
@@ -199,15 +205,37 @@ class Enemy extends PhysicalGameObject {
                 this.shoot();
                 this.dequeueAction();
                 break;
+            case ActionType.StartTargeting:
+                this.isTargeting = true;
+                this.dequeueAction();
+                break;
+            case ActionType.EndTargeting:
+                this.isTargeting = false;
+                this.dequeueAction();
+                break;
+            case ActionType.Idle:
+                const idleTime = this.actionQueue[0].data as number;
+                setTimeout(() => this.dequeueAction(), idleTime);
+                break;
         }
+    }
+    
+    //* handle all the movement
+    override updatePhysics(deltaTime: number): void {
+        // rotation has priority over movement
+        if(this.angularVelocity === null)
+            super.updatePhysics(deltaTime);
+        
+        this.handleActions();
     }
 
     //* tank behavior
     override Update(deltaTime: number): void {
         // move and shoot logic
         const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));
-        if(distanceToPlayer < this.shootingRange && !this.shootOverheat) {
+        if(distanceToPlayer < this.shootingRange && !this.shootOverheat && !this.isTargeting) {
             this.shootPlayer();
+            this.idle();
         }
     }
 }
