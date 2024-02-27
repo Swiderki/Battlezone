@@ -8,6 +8,8 @@ import HealthBar from "../gui/healthbar";
 import Radar from "../gui/radar";
 import { motionBlockedMsg } from "../gui/messages";
 import PlayerObstacleOverlap from "../overlaps/PlayerObstacleOverlap";
+import { BestScore } from "../../util/BestScore";
+import Score from "../gui/Score";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
@@ -15,19 +17,25 @@ class PlayerTank extends PhysicalGameObject {
   private boxColliderSize = 50 as const;
   bulletRange = 200 as const;
 
-    // references to game objects
-    playerCamera?: Camera;
-    enemies: GameObject[];
-    game: Battlezone;
-    // references to playerUI
-    playerGUI: GUI;
-    radar?: Radar;
-    playerCrosshair?: Crosshair;
-    playerHealthBar: HealthBar;
-
+  // references to game objects
+  playerCamera?: Camera;
+  enemies: GameObject[];
+  game: Battlezone;
+  
+  // references to playerUI
+  playerGUI: GUI;
+  radar?: Radar;
+  playerCrosshair?: Crosshair;
+  playerHealthBar: HealthBar;
+  scoreGUI?: Score;
+  
   // shooting
   shootDelay = false;
 
+  // score
+  score: number = 0
+  bestScore: number = BestScore.get()
+  
   // overrides
   override boxCollider: Line3D;
 
@@ -39,7 +47,9 @@ class PlayerTank extends PhysicalGameObject {
     this.enemies = game.enemies;
     this.isHollow = true;
     this.game = game;
+
     this.playerGUI = new GUI(this.game.getCanvas, this.game.getCanvas.getContext("2d")!);
+
     this.playerHealthBar = new HealthBar(5, this.playerGUI);
     this.boxCollider = [
       // box collider jest przesuniety do przodu troche zeby bylo go widac (dev)
@@ -64,6 +74,7 @@ class PlayerTank extends PhysicalGameObject {
     // create ale needed
     this.playerCrosshair = new Crosshair();
     this.radar = new Radar(this.enemies, this.playerCamera!, this);
+    this.scoreGUI = new Score(this);
     // add everything to the GUI
     this.playerGUI.addElement(this.playerCrosshair);
     this.playerGUI.addElement(this.radar);

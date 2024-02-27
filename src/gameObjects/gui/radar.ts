@@ -1,6 +1,7 @@
 import { Camera, GUIElement, GameObject } from "drake-engine";
 import PlayerTank from "../Player/PlayerTank";
 import { enemyInRangeMsg, enemyLocationMsg } from "./messages";
+import { GUI_MARGIN } from "../../util/consts";
 
 class Radar implements GUIElement {
   //* GUIElement stuff
@@ -15,7 +16,6 @@ class Radar implements GUIElement {
   radius = 90;
   color = "#f0f";
   thickness = 3;
-  topMargin = 30;
 
   constructor(enemies: GameObject[], camera: Camera, player: PlayerTank) {
     this.width = 20;
@@ -38,7 +38,7 @@ class Radar implements GUIElement {
 
     // circle
     ctx.beginPath();
-    ctx.arc(centerX, this.radius + this.topMargin, this.radius, 0, Math.PI * 2);
+    ctx.arc(centerX, this.radius + GUI_MARGIN, this.radius, 0, Math.PI * 2);
     ctx.lineWidth = this.thickness;
     ctx.stroke();
 
@@ -47,27 +47,27 @@ class Radar implements GUIElement {
 
     ctx.fillRect(
       centerX - this.radius - outerPitchWidth,
-      this.radius + this.topMargin,
+      this.radius + GUI_MARGIN,
       outerPitchWidth,
       this.thickness
     );
-    ctx.fillRect(centerX + this.radius, this.radius + this.topMargin, outerPitchWidth, this.thickness);
-    ctx.fillRect(centerX, this.topMargin - outerPitchWidth, this.thickness, outerPitchWidth);
-    ctx.fillRect(centerX, this.radius * 2 + this.topMargin, this.thickness, outerPitchWidth);
+    ctx.fillRect(centerX + this.radius, this.radius + GUI_MARGIN, outerPitchWidth, this.thickness);
+    ctx.fillRect(centerX, GUI_MARGIN - outerPitchWidth, this.thickness, outerPitchWidth);
+    ctx.fillRect(centerX, this.radius * 2 + GUI_MARGIN, this.thickness, outerPitchWidth);
 
     // inside fov show
     const fovRad = (this.camera.fov / 180) * Math.PI;
 
     ctx.beginPath();
-    ctx.moveTo(centerX, this.topMargin + this.radius);
+    ctx.moveTo(centerX, GUI_MARGIN + this.radius);
     ctx.lineTo(
       -this.radius * Math.sin(fovRad / 2) + centerX,
-      -this.radius * Math.cos(fovRad / 2) + this.topMargin + this.radius
+      -this.radius * Math.cos(fovRad / 2) + GUI_MARGIN + this.radius
     );
-    ctx.moveTo(centerX, this.topMargin + this.radius);
+    ctx.moveTo(centerX, GUI_MARGIN + this.radius);
     ctx.lineTo(
       -this.radius * Math.sin(-fovRad / 2) + centerX,
-      -this.radius * Math.cos(fovRad / 2) + this.topMargin + this.radius
+      -this.radius * Math.cos(fovRad / 2) + GUI_MARGIN + this.radius
     );
     ctx.stroke();
 
@@ -107,7 +107,7 @@ class Radar implements GUIElement {
       ctx.fillStyle = "#fff";
       ctx.fillRect(
         centerX + xPrimo * drawingScale,
-        this.radius + this.topMargin + yPrimo * drawingScale,
+        this.radius + GUI_MARGIN + yPrimo * drawingScale,
         3,
         3
       );
