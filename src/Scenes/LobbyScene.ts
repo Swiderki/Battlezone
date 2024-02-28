@@ -6,7 +6,7 @@ export default class LobbyScene extends Scene {
   private game: Battlezone;
 
   constructor(game: Battlezone, background?: BackgroundObjectConfig) {
-    super(background);
+    super(background, game._isStarted);
     this.game = game;
 
     this.setMainCamera(game.camera, game.width, game.height);

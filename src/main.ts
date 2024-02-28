@@ -52,7 +52,10 @@ class Battlezone extends Engine {
   }
 
   // game state manipulation
+
   setGameStateToLobby(): LobbyScene {
+    this.removeAllScenes();
+
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
     const lobbyScene = new LobbyScene(this, {
       object: sceneBg,
@@ -62,12 +65,7 @@ class Battlezone extends Engine {
     });
     lobbyScene.useLobbyOverlay();
 
-    try {
-      // if not set yet will throw an Error
-      this.currentScene;
-    } catch (_) {
-      this.scenesIDs.lobby = this.addScene(lobbyScene);
-    }
+    this.scenesIDs.lobby = this.addScene(lobbyScene);
 
     this.removeEventListeners();
 
@@ -78,6 +76,8 @@ class Battlezone extends Engine {
   }
 
   setGameStateToPlay() {
+    this.removeAllScenes();
+
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
     const playScene = new PlayScene(this, {
       object: sceneBg,
@@ -87,12 +87,8 @@ class Battlezone extends Engine {
     });
     playScene.usePlayOverlay();
 
-    try {
-      // if not set yet will throw an Error
-      this.currentScene;
-    } catch (_) {
-      this.scenesIDs.play = this.addScene(playScene);
-    }
+    this.scenesIDs.play = this.addScene(playScene);
+    this.setCurrentScene(this.scenesIDs.play);
 
     console.log(playScene, this.currentScene);
 
@@ -107,6 +103,11 @@ class Battlezone extends Engine {
     // test purpose only
     // this.spawnTank();
     this.spawnObstacle();
+  }
+
+  removeAllScenes() {
+    this.removeCurrentScene();
+    Object.values(this.scenesIDs).forEach((sceneID) => this.removeScene(sceneID));
   }
 
   addEventListeners(): void {
