@@ -20,43 +20,43 @@ interface Action {
 
 class Enemy extends PhysicalGameObject {
     // movement constants
-    private readonly movementSpeed = 10;
+    protected readonly movementSpeed = 10;
     readonly rotationSpeed = Math.PI / 180 * 2; 
     
     // shooting
-    private readonly bulletSpeed = 180;
-    private readonly shootingRange = 200;
-    private readonly bulletRange = 150;
-    private readonly shootDelay = 10 * 1000;
-    private readonly shootingChance = .9;
-    private shootOverheat = false;
+    protected readonly bulletSpeed = 180;
+    protected readonly shootingRange = 200;
+    protected readonly bulletRange = 150;
+    protected readonly shootDelay = 10 * 1000;
+    protected readonly shootingChance = .9;
+    protected shootOverheat = false;
     
     // behavior
-    private isTargeting = false;
-    private moveTowardsPlayerChance = .5;
+    protected isTargeting = false;
+    protected moveTowardsPlayerChance = .5;
 
     // rotation
-    private angularVelocity: Rotation3DTuple | null = null;
-    private rotationQuaternion = { x: 0, y: 0, z: 0, w: 0 }; 
+    protected angularVelocity: Rotation3DTuple | null = null;
+    protected rotationQuaternion = { x: 0, y: 0, z: 0, w: 0 }; 
 
     // action queue
-    private actionQueue: Action[] = [];
+    protected actionQueue: Action[] = [];
 
     // we need this in order to keep track of the rotation
-    private _tempRotation: Rotation3D;
+    protected _tempRotation: Rotation3D;
 
     //* references
-    private game: Battlezone
+    protected game: Battlezone
     
 
     //* Start
-    constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
-        super('public/objects/tanks/tank.obj', { position, size, rotation });
+    constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple, model='tank') {
+        super(`public/objects/tanks/${model}.obj`, { position, size, rotation });
         // this.showBoxcollider = true;
         this.autoupdateBoxCollider = true;
         this.showBoxcollider = true;
         this.game = game;
-        this._tempRotation = {xAxis: 0, yAxis: Math.PI, zAxis: 0}; //* to fix
+        this._tempRotation = {xAxis: 0, yAxis: Math.PI, zAxis: 0};
     }
 
     override Start(): void {
