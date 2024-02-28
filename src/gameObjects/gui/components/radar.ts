@@ -105,12 +105,7 @@ class Radar implements GUIElement {
       const drawingScale = this.radius / this.player.bulletRange;
 
       ctx.fillStyle = "#fff";
-      ctx.fillRect(
-        centerX + xPrimo * drawingScale,
-        this.radius + GUI_MARGIN + yPrimo * drawingScale,
-        3,
-        3
-      );
+      ctx.fillRect(centerX + xPrimo * drawingScale, this.radius + GUI_MARGIN + yPrimo * drawingScale, 3, 3);
     }
 
     if (tooFarEnemies === this.enemies.length) {
