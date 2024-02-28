@@ -26,6 +26,7 @@ export class BulletOverlap extends Overlap {
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.removeEnemy(this.target);
       this.game.player.score += NORMAL_TANK_POINTS;
+      this.game.difficultyFactor += .01
       // save score every time player scores to avoid situation of losing their
       // points in case of unfinishing the game properly (e.g. power loss)
       BestScore.checkAndSave(this.game.player.score);
@@ -33,7 +34,9 @@ export class BulletOverlap extends Overlap {
 
     //* handle player collision
     if (this.target instanceof PlayerTank) {
-      console.log(this.target.game.overlays.play);
+      if(this.target.game.overlays.play?.currentHealth === 1) {
+        console.log('Umierasz!!!!!!!!!!!!!')
+      }
       this.target.game.overlays.play?.changeHealthBy(-1);
     }
 

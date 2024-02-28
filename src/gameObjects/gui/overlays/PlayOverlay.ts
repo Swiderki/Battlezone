@@ -55,6 +55,15 @@ export default class PlayOverlay implements GUIComponent {
     }
   }
 
+  get currentHealth() {
+    for (const component of this.components) {
+      if (component instanceof HealthBar) {
+        return component.currentHealth;
+      }
+    }
+    return null;
+  }
+
   applyOverlay(): void {
     for (const component of this.components) {
       const id = this.game.gui.addElement(component);

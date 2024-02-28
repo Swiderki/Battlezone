@@ -9,7 +9,7 @@ import { BestScore } from "../../util/BestScore";
 class PlayerTank extends PhysicalGameObject {
   // constants
   private bulletSpeed = 100 as const;
-  private boxColliderSize = 20 as const;
+  private boxColliderSize = 15 as const;
   bulletRange = 200 as const;
 
   // references to game objects
@@ -32,11 +32,10 @@ class PlayerTank extends PhysicalGameObject {
   isBlockedByObstacle = false;
 
   constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
-    super("empty.obj", { position, size, rotation });
+    super("objects/empty.obj", { position, size, rotation });
     this.enemies = game.enemies;
     this.isHollow = true;
     this.game = game;
-
 
     this.boxCollider = [
       // box collider jest przesuniety do przodu troche zeby bylo go widac (dev)

@@ -1,4 +1,4 @@
-import { Engine, Camera, Scene, GameObject, GUI } from "drake-engine";
+import { Engine, Camera, Scene, GameObject, GUI, Vec3DTuple } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
@@ -18,14 +18,15 @@ class Battlezone extends Engine {
 
   //* gameObjects
   player: PlayerTank;
-  enemies: GameObject[] = [
-    new Enemy(this, [10, 0, 60], [0.07, 0.07, 0.07]),
-    // new Enemy(this, [-60, 0, 0], [.07, .07, .07]),
-    // new Enemy(this, [60, 0, 0], [.07, .07, .07]),
-    // new Enemy(this, [-60, 0, -60], [.07, .07, .07]),
-    // new Enemy(this, [0, 0, -60], [.07, .07, .07]),
-  ];
+  enemies: GameObject[] = [];
   obstacles: Obstacle[] = [];
+
+  private readonly battfledSize = [1000, 1000];
+  private readonly spawnSize = [40, 40];
+  private readonly enemyCount = 10;
+  private readonly obstacleCount = 20;
+  
+  difficultyFactor = .1;
 
   gui: GUI;
   overlays: Overlays = {};
@@ -35,7 +36,7 @@ class Battlezone extends Engine {
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);
-
+    
     this.player = new PlayerTank(this, [0, 0, 0]);
     this.gui = new GUI(this.canvas, this.canvas.getContext("2d")!);
   }
@@ -45,6 +46,7 @@ class Battlezone extends Engine {
     if (index !== -1) {
       this.enemies.splice(index, 1);
     }
+    setTimeout(() => this.spawnTank(), Math.max(4000, 1000 / this.difficultyFactor));
   }
 
   addEventListeners() {
@@ -61,20 +63,27 @@ class Battlezone extends Engine {
   }
 
   spawnTank() {
-    if (!this.currentScene) {
-      return;
-    }
+    if (!this.currentScene) return;
+    let randomX = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[0]) / 2) + this.spawnSize[0];
+    let randomZ = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[1]) / 2) + this.spawnSize[1];
+    randomX *= Math.random() > .5 ? 1 : -1;
+    randomZ *= Math.random() > .5 ? 1 : -1;
 
-    const enemy = new Enemy(this, [10, 0, 60], [0.07, 0.07, 0.07]);
+    const enemy = new Enemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
+    
     this.enemies.push(enemy);
-
     this.currentScene.addGameObject(enemy);
   }
 
   spawnObstacle() {
     if (!this.currentScene) return;
-
-    const obstacle = new Obstacle({ position: [20, 0, 50], size: [0.1, 0.1, 0.1] });
+    let randomX = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[0]) / 2) + this.spawnSize[0];
+    let randomZ = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[1]) / 2) + this.spawnSize[1];
+    randomX *= Math.random() > .5 ? 1 : -1;
+    randomZ *= Math.random() > .5 ? 1 : -1;
+    
+    const obstacle = new Obstacle({ position: [randomX, 0, randomZ], size: [0.1, 0.1, 0.1] });
+    
     this.obstacles.push(obstacle);
     this.currentScene.addGameObject(obstacle);
     obstacle.Start = () => {
@@ -84,7 +93,7 @@ class Battlezone extends Engine {
 
   override Start(): void {
     this.setResolution(1280, 720);
-    const camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
+    const camera = new Camera(60, 0.1, 10000, [this.player.position.x, 6, this.player.position.y], [0, 0, 1]);
     // Scene set up
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
     const mainScene = new Scene({
@@ -123,8 +132,13 @@ class Battlezone extends Engine {
     mainScene._started = true;
 
     // test purpose only
-    // this.spawnTank();
-    this.spawnObstacle();
+    for(let i=0;i<this.obstacleCount;i++) {
+      this.spawnObstacle();
+    }
+
+    for(let i=0;i<this.enemyCount;i++) {
+      this.spawnTank();
+    }
   }
 
   override Update(): void {
