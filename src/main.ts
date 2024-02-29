@@ -115,15 +115,13 @@ class Battlezone extends Engine {
 
     this.scenesIDs.play = this.addScene(playScene);
     this.setCurrentScene(this.scenesIDs.play);
-
-    // test purpose only
-    // this.spawnTank();
+    
     for (let i = 0; i < this.startingObstacleAmount; i++) {
       this.spawnObstacle();
     }
 
     for (let i = 0; i < this.startingEnemyAmount; i++) {
-      // this.spawnTank("normal");
+      this.spawnTank("normal");
     }
 
     // add player to the scene
