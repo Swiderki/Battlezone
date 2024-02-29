@@ -4,10 +4,10 @@ import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
 import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
-import LobbyScene from "./Scenesss/LobbyScene";
+import LobbyScene from "./Scenes/LobbyScene";
 import LobbyOverlay from "./gameObjects/gui/overlays/LobbyOverlay";
 import PlayOverlay from "./gameObjects/gui/overlays/PlayOverlay";
-import PlayScene from "./Scenesss/PlayScene";
+import PlayScene from "./Scenes/PlayScene";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
