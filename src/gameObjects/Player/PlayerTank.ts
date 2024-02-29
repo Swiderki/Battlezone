@@ -72,7 +72,6 @@ class PlayerTank extends PhysicalGameObject {
 
   private thirdPersonHandle(): void {
     if (this.game.thirdPerson) {
-      this.showBoxcollider = true;
       this.game.camera.position = {
         x: this.position.x - this.game.camera.lookDir.x * this.game.thirdPersonCameraDistance,
         y: this.position.y + this.game.thirdPersonCameraHeight,
@@ -117,7 +116,7 @@ class PlayerTank extends PhysicalGameObject {
       this.rotate(0, -(Math.PI / 180) * (movementDirection || 1) * deltaTime * ROTATION_NORMALIZATION, 0);
     }
 
-    if (e.has(" ")) {
+    if (e.has(" ") || e.has("k")) {
       this.shoot();
     }
 
@@ -147,15 +146,14 @@ class PlayerTank extends PhysicalGameObject {
       [0.01, 0.01, 0.01]
     );
 
-    console.log(Object.values(Vector.add(this.position, this.game.camera!.lookDir)) as Vec3DTuple);
-
     // to make bullet fly over, not on the ground
-    bullet.position.y = 4;
+    bullet.position.y = 2;
 
     const bulletId = this.game.currentScene.addGameObject(bullet);
 
     bullet.Start = () => {
       bullet.generateBoxCollider();
+      new Audio("sounds/bullet.mp3").play();
       this.game.enemies.forEach((enemy) => {
         this.game.currentScene.addOverlap(new BulletOverlap(bullet, enemy, this.game));
       });
@@ -185,7 +183,6 @@ class PlayerTank extends PhysicalGameObject {
     // reload if needed
     if (this.currentAmmo === 0) {
       setTimeout(() => (this.currentAmmo = this.maxAmmo), 3000);
-      console.log("reload");
     }
     setTimeout(() => (this.shootDelay = false), 1000);
   }

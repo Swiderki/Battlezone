@@ -4,9 +4,9 @@ import Battlezone from "../../main";
 
 class SuperEnemy extends Enemy {
   // shooting constants
-  protected override shootingRange = 60;
+  protected override shootingRange = 100;
   protected spootingRange = 300;
-  protected override bulletRange = 60;
+  protected override bulletRange = 300;
   protected override shootDelay = 1 * 1000;
   protected override shootingChance = 0.9;
 

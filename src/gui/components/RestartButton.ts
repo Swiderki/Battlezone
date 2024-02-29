@@ -13,5 +13,8 @@ export default class RestartButton extends BattlezoneButton {
 
   override onClick(): void {
     // restart game
+    this.game.restartGame();
+    this.game.setGameStateToPlay();
+    console.log(this.game.currentScene.gameObjects);
   }
 }

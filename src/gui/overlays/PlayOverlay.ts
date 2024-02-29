@@ -53,6 +53,11 @@ export default class PlayOverlay extends Overlay {
 
     this.healthBar.currentHealth += amount;
   }
+  setHealth(amount: number) {
+    if (!this.healthBar) return;
+
+    this.healthBar.currentHealth = amount;
+  }
 
   get currentHealth() {
     for (const component of this.components) {

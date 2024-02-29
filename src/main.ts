@@ -12,6 +12,7 @@ import SuperEnemy from "./gameObjects/enemies/SuperEnemy";
 import UFO from "./gameObjects/enemies/UFO";
 import DeathOverlay from "./gui/overlays/DeathOverlay";
 import Missile from "./gameObjects/enemies/Missle";
+import { INITIAL_PLAYER_HEALTH } from "./util/consts";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -99,6 +100,17 @@ class Battlezone extends Engine {
 
     this._gameState = "lobby";
     this.setCurrentScene(this.scenesIDs.lobby!);
+
+    const tank1 = new Enemy(this, [10, 0, 100], [0.07, 0.07, 0.07]);
+    const tank2 = new Enemy(this, [-30, 0, 50], [0.07, 0.07, 0.07]);
+    tank1.Update = () => {
+      tank1.rotate(0, this.deltaTime * 0.4, 0);
+    };
+    tank2.Update = () => {
+      tank2.rotate(0, this.deltaTime, 0);
+    };
+    lobbyScene.addGameObject(tank1);
+    lobbyScene.addGameObject(tank2);
   }
 
   setGameStateToPlay(): void {
@@ -137,17 +149,28 @@ class Battlezone extends Engine {
     setTimeout(() => this.spawnMissile(), 10000 + Math.floor(Math.random() * 10000));
   }
 
+  restartGame() {
+    this.enemies = [];
+    this.obstacles = [];
+    this.difficultyFactor = 0;
+    this.player.setPosition(0, 0, 0);
+    if (this.overlays.play) {
+      this.overlays.play.setHealth(INITIAL_PLAYER_HEALTH);
+    }
+    this.player.score = 0;
+    this.camera = new Camera(60, 0.1, 1000, [0, this.firstPersonCameraHeight, 0], [0, 0, 1]);
+  }
+
   setGameStateToDeath() {
     if (!(this.currentScene instanceof PlayScene)) {
       console.error("Death state can be set only after play state! Current state: ", this._gameState);
       console.error(this.currentScene);
       throw new Error();
     }
-
+    new Audio("sounds/explosion.mp3").play();
     this.currentScene.useDeathOverlay();
     this.removeEventListeners();
     this.keysPressed.clear();
-    // this.pauseGame();
   }
 
   removeAllScenes() {
@@ -176,7 +199,6 @@ class Battlezone extends Engine {
 
   clearKeys = () => {
     this.keysPressed.clear();
-    console.log("blur");
   };
 
   // those 2 function have to be arrow function to avoid this refering to document
@@ -207,7 +229,6 @@ class Battlezone extends Engine {
   }
 
   spawnUfo() {
-    console.log("spawned ufo");
     const pos = this.pickValidCoridantes();
     this.ufo = new UFO(this, [pos.x, 0, pos.z], [0.07, 0.07, 0.07]);
     this.currentScene.addGameObject(this.ufo);
@@ -235,10 +256,6 @@ class Battlezone extends Engine {
     const superEnemiesAmount = Math.floor(maxEnemies * superEnemyPercentage);
     const regularEnemiesAmount = maxEnemies - superEnemiesAmount;
 
-    console.table([
-      ["difficulty", "enemies", "super enemies", "super enemies %"],
-      [this.difficultyFactor, regularEnemiesAmount, superEnemiesAmount, superEnemyPercentage],
-    ]);
     // Count currently deployed enemies
     let currentEnemiesAmount = 0;
     let currentSuperEnemiesAmount = 0;

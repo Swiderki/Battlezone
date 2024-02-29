@@ -23,10 +23,9 @@ export class BulletOverlap extends Overlap {
 
   override onOverlap(): void {
     if (!this.game.currentScene) return;
-
+    new Audio("sounds/explosion.mp3").play();
     //* handle ufo collision
     if (this.target instanceof UFO) {
-      console.log("ufoufo trafione");
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.currentScene.removeGameObject(this.bullet.id);
       this.game.player.score += UFO_POINTS;
@@ -38,7 +37,6 @@ export class BulletOverlap extends Overlap {
     }
 
     if (this.target instanceof Missile) {
-      console.log("missle trafione");
       this.game.removeEnemy(this.target);
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.currentScene.removeGameObject(this.bullet.id);
@@ -55,7 +53,6 @@ export class BulletOverlap extends Overlap {
 
     //* handle enemy collision
     if (this.target instanceof Enemy && !(this.target instanceof UFO)) {
-      console.log("enemy trafione");
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.removeEnemy(this.target);
       this.game.player.score += this.target instanceof SuperEnemy ? SUPER_TANK_POINTS : NORMAL_TANK_POINTS;
@@ -69,16 +66,13 @@ export class BulletOverlap extends Overlap {
     }
 
     // * handle player collision
-    if (this.target instanceof PlayerTank) {
-      console.log("gracz trafione");
-      if (this.bullet instanceof Missile) {
-        this.target.game.overlays.play?.changeHealthBy(-2);
-        this.game.removeEnemy(this.bullet);
-      } else {
-        this.target.game.overlays.play?.changeHealthBy(-2);
-        this.game.currentScene.removeGameObject(this.bullet.id);
-      }
+    if (this.target instanceof PlayerTank && this.bullet instanceof Missile) {
+      // remove missile
+      this.game.removeEnemy(this.bullet);
+      this.game.currentScene.removeGameObject(this.bullet.id);
 
+      // determine if player is dead && decease hp
+      this.target.game.overlays.play?.changeHealthBy(-2);
       if (this.target.game.overlays.play?.currentHealth === 0) {
         this.game.setGameStateToDeath();
       }

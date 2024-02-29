@@ -36,8 +36,8 @@ class Enemy extends PhysicalGameObject {
 
   // shooting
   protected bulletSpeed = BULLET_SPEED;
-  protected shootingRange = 200;
-  protected bulletRange = 150;
+  protected shootingRange = 300;
+  protected bulletRange = 400;
   protected shootDelay = 5 * 1000;
   protected shootingChance = 0.9;
   protected shootOverheat = false;
@@ -75,10 +75,9 @@ class Enemy extends PhysicalGameObject {
     rotation?: Vec3DTuple,
     model = "tank"
   ) {
-    super(`public/objects/enemies/${model}.obj`, { position, size, rotation });
+    super(`objects/enemies/${model}.obj`, { position, size, rotation });
     // this.showBoxcollider = true;
     this.autoupdateBoxCollider = true;
-    this.showBoxcollider = true;
     this.game = game;
     this._tempRotation = { xAxis: 0, yAxis: Math.PI, zAxis: 0 };
   }
@@ -90,7 +89,6 @@ class Enemy extends PhysicalGameObject {
       if (collideObjects(this.boxCollider!, obstacle.boxCollider)) {
         this.game.removeEnemy(this);
         this.game.currentScene!.removeGameObject(this.id);
-        // console.log('ppspspsp');
         return;
       }
     }
@@ -143,7 +141,7 @@ class Enemy extends PhysicalGameObject {
         this.game.player.position,
         Vector.multiply(normalizedDirection, keepDistanceFromPlayer)
       );
-      // console.table([this.game.player.position, destination])
+
       // Enqueue a movement action towards the calculated destination
       this.moveTo(destination);
       return; // Return early to avoid executing the rest of the method
@@ -229,7 +227,7 @@ class Enemy extends PhysicalGameObject {
 
     bullet.Start = () => {
       if (bullet.vertecies.length < 1) return;
-
+      new Audio("sounds/bullet.mp3").play();
       bullet.generateBoxCollider();
 
       this.game.obstacles.forEach((obj) => {
@@ -252,6 +250,21 @@ class Enemy extends PhysicalGameObject {
         this.bulletRange
       ) {
         this.game.currentScene.removeGameObject(bulletId);
+      }
+
+      if (bullet.boxCollider === null) return;
+
+      const playerDistance = Vector.length(Vector.subtract(this.game.player.position, bullet.position));
+
+      if (playerDistance < 15) {
+        // remove bullet from scene
+        this.game.currentScene.removeGameObject(bullet.id);
+
+        // determine if player is dead && decease hp
+        this.game.overlays.play?.changeHealthBy(-1);
+        if (this.game.overlays.play?.currentHealth === 0) {
+          this.game.setGameStateToDeath();
+        }
       }
     };
 
@@ -398,16 +411,11 @@ class Enemy extends PhysicalGameObject {
     this.handleActions();
   }
 
-  changeColorOnAction() {
-    for (let i = 0; i < this.getMesh().length; i++) {
-      this.setLineColor(i, this.currentAction?.type === ActionType.AvoidObstacle ? "red" : this.currentColor);
-    }
-  }
+  changeColorOnAction() {}
 
   //* tank behavior
   override Update(): void {
     // shooting player takes priority
-    // console.log(this.currentAction)
     const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));
     const canShoot = distanceToPlayer < this.shootingRange && !this.shootOverheat && !this.isTargeting;
     if (distanceToPlayer < this.shootingRange) {

@@ -10,6 +10,5 @@ export default class Obstacle extends GameObject {
     const randomObstacleMesh = obstacles[Math.floor(Math.random() * obstacles.length)];
     super(randomObstacleMesh, initialConfig);
     this.autoupdateBoxCollider = true;
-    this.showBoxcollider = true;
   }
 }

@@ -6,7 +6,7 @@ export const UFO_POINTS = 5000;
 
 export const INITIAL_PLAYER_HEALTH = 5;
 
-export const BULLET_SPEED = 300;
+export const BULLET_SPEED = 600;
 export const AMMO_MAX = 6;
 
 export const INITIAL_PLAYER_BOX_COLLIDER = 15;

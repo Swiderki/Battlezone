@@ -3,7 +3,7 @@ import BattlezoneButton from "./templates/BattlezoneButton";
 
 export default class StartButton extends BattlezoneButton {
   constructor(game: Battlezone) {
-    super(game, "START", 30, "monospace", "#fff", 700);
+    super(game, "START", 60, "monospace", "#fff", 700);
 
     this.position = {
       x: this.game.width / 2 - this.width / 2 - this.padding.left - this.border.left.width,

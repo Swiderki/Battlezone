@@ -4,7 +4,7 @@ import Enemy, { ActionType } from "./Enemy";
 import { BulletOverlap } from "../../overlaps/BulletOverlap";
 
 class Missile extends Enemy {
-  protected override movementSpeed = 100;
+  protected override movementSpeed = 50;
   override rotationSpeed = (Math.PI / 180) * 5;
 
   constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
@@ -19,7 +19,6 @@ class Missile extends Enemy {
   }
 
   reTargetPlayer() {
-    console.log(123);
     if (this.currentAction?.type === ActionType.Move) {
       this.cleanActionQueue();
       this.moveTo(this.game.player.position);
