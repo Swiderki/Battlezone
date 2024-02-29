@@ -11,6 +11,7 @@ import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { collideObjects } from "../../util/rayCast";
+import { BULLET_SPEED } from "../../util/consts";
 
 export enum ActionType {
   Rotate,
@@ -33,7 +34,7 @@ class Enemy extends PhysicalGameObject {
   readonly rotationSpeed = (Math.PI / 180) * 2;
 
   // shooting
-  protected bulletSpeed = 180;
+  protected bulletSpeed = BULLET_SPEED;
   protected shootingRange = 200;
   protected bulletRange = 150;
   protected shootDelay = 5 * 1000;

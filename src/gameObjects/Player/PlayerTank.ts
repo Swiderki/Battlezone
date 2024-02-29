@@ -5,12 +5,14 @@ import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { motionBlockedMsg } from "../../gui/components/messages";
 import PlayerObstacleOverlap from "../../overlaps/PlayerObstacleOverlap";
 import { BestScore } from "../../util/BestScore";
+import { BULLET_SPEED } from "../../util/consts";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
-  private bulletSpeed = 100 as const;
+  private bulletSpeed = BULLET_SPEED;
   private boxColliderSize = 15 as const;
-  bulletRange = 200 as const;
+  private movementMultiplayer = 4;
+  bulletRange = 400 as const;
 
   // references to game objects
   playerCamera?: Camera;
@@ -61,9 +63,9 @@ class PlayerTank extends PhysicalGameObject {
     const movementDirection = (+e.has("w") - +e.has("s")) as 1 | 0 | -1;
 
     this.move(
-      this.playerCamera!.lookDir.x * movementDirection * deltaTime * VELOCITY_NORMALIZATION,
-      this.playerCamera!.lookDir.y * movementDirection * deltaTime * VELOCITY_NORMALIZATION,
-      this.playerCamera!.lookDir.z * movementDirection * deltaTime * VELOCITY_NORMALIZATION
+      this.playerCamera!.lookDir.x * movementDirection * deltaTime * VELOCITY_NORMALIZATION * this.movementMultiplayer,
+      this.playerCamera!.lookDir.y * movementDirection * deltaTime * VELOCITY_NORMALIZATION * this.movementMultiplayer,
+      this.playerCamera!.lookDir.z * movementDirection * deltaTime * VELOCITY_NORMALIZATION * this.movementMultiplayer
     );
 
     if (e.has("d")) {
@@ -114,7 +116,11 @@ class PlayerTank extends PhysicalGameObject {
       });
       this.game.obstacles.forEach((obj) => {
         this.game.currentScene.addOverlap(new BulletOverlap(bullet, obj, this.game));
-      });
+      })
+      if(this.game.ufo) {
+        this.game.currentScene.addOverlap(new BulletOverlap(bullet, this.game.ufo, this.game));
+      }
+      
       bullet.velocity = Vector.multiply(this.playerCamera!.lookDir, this.bulletSpeed);
     };
 

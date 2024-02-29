@@ -1,4 +1,4 @@
-import { Engine, Camera, GameObject } from "drake-engine";
+import { Engine, Camera, GameObject, Vector, Vec3D } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
@@ -9,6 +9,7 @@ import LobbyOverlay from "./gui/overlays/LobbyOverlay";
 import PlayOverlay from "./gui/overlays/PlayOverlay";
 import PlayScene from "./Scenes/PlayScene";
 import SuperEnemy from "./gameObjects/enemies/SuperEnemy";
+import UFO from "./gameObjects/enemies/UFO";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -30,6 +31,7 @@ class Battlezone extends Engine {
   player: PlayerTank;
   enemies: GameObject[] = [];
   obstacles: Obstacle[] = [];
+  ufo?: UFO;
 
   private readonly battleFieldSize = [1000, 1000];
   private readonly spawnSize = [60, 60];
@@ -63,6 +65,7 @@ class Battlezone extends Engine {
       repeat: true,
       rotationLikeCameraSpeed: 6,
     });
+
     lobbyScene.useLobbyOverlay();
 
     this.scenesIDs.lobby = this.addScene(lobbyScene);
@@ -107,6 +110,8 @@ class Battlezone extends Engine {
 
     // add all essential event listeners
     this.addEventListeners();
+
+    setTimeout(() => this.spawnUfo(), 4000 + Math.floor(Math.random() * 6000));
   }
 
   removeAllScenes() {
@@ -134,25 +139,27 @@ class Battlezone extends Engine {
 
   spawnTank(type: 'normal' | 'super') {
     if (!this.currentScene) return;
-    let randomX =
-      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
-    let randomZ =
-      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
-    randomX *= Math.random() > 0.5 ? 1 : -1;
-    randomZ *= Math.random() > 0.5 ? 1 : -1;
+    const randomPos = this.pickValidCoridantes();
 
     if(type === 'normal') {
-      const enemy = new Enemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
+      const enemy = new Enemy(this, [randomPos.x, 0, randomPos.z], [0.07, 0.07, 0.07]);
 
       this.enemies.push(enemy);
       this.currentScene.addGameObject(enemy);
 
       return;
     }
-    const enemy = new SuperEnemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
+    const enemy = new SuperEnemy(this, [randomPos.x, 0, randomPos.z], [0.07, 0.07, 0.07]);
 
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
+  }
+
+  spawnUfo() {
+    console.log('spawned ufo')
+    const pos = this.pickValidCoridantes();
+    this.ufo = new UFO(this, [pos.x, 0, pos.z], [.07, .07, .07]);
+    this.currentScene.addGameObject(this.ufo);
   }
 
   removeEnemy(enemy: Enemy) {
@@ -228,6 +235,23 @@ class Battlezone extends Engine {
     // assign main camera to player
     // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
+  }
+
+  pickValidCoridantes(): Vec3D {
+    let randomX =
+      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
+    let randomZ =
+      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
+    randomX *= Math.random() > 0.5 ? 1 : -1;
+    randomZ *= Math.random() > 0.5 ? 1 : -1;
+    const pos = {x: randomX, y: 0, z: randomZ};
+    for(const obstacle of this.obstacles) {
+      const distance = Vector.length(Vector.subtract(obstacle.position, pos));
+      if(distance < 60)
+        return this.pickValidCoridantes();
+    }
+
+    return pos;
   }
 
   override Update(): void {
