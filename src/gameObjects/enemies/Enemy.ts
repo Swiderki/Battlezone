@@ -344,7 +344,7 @@ class Enemy extends PhysicalGameObject {
     this.moveTo(backDest);
   }
 
-  isCollidingWithObstacle(position: Vec3D): boolean {
+  isCollidingWithObstacle(): boolean {
     for (const obstacle of this.game.obstacles) {
       if (collideObjects(this.boxCollider!, obstacle.boxCollider!)) {
         return true;

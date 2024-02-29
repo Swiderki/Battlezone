@@ -22,7 +22,7 @@ export default class PlayOverlay extends Overlay {
   private initComponents() {
     const healthBar = new HealthBar();
     const crosshair = new Crosshair();
-    const radar = new Radar(this.game.enemies, this.game.player.playerCamera!, this.game.player);
+    const radar = new Radar(this.game.enemies, this.game.player.game.camera!, this.game.player);
     const score = new Score(this.game.player);
 
     this.components.push(healthBar, crosshair, radar, score);
@@ -31,7 +31,7 @@ export default class PlayOverlay extends Overlay {
   }
 
   private handleCrosshair(): void {
-    if (this.crosshair === undefined || this.game.player.playerCamera === undefined) {
+    if (this.crosshair === undefined || this.game.player.game.camera === undefined) {
       return;
     }
 
@@ -40,7 +40,7 @@ export default class PlayOverlay extends Overlay {
     this.crosshair.isTargeting = false;
     this.game.enemies.some((enemy) => {
       if (enemy.boxCollider === null) return false; // prevent further errors
-      if (rayCast(this.game.player.position, this.game.player.playerCamera!.lookDir, enemy.boxCollider)) {
+      if (rayCast(this.game.player.position, this.game.player.game.camera!.lookDir, enemy.boxCollider)) {
         this.crosshair!.isTargeting = true;
         return true;
       }

@@ -26,7 +26,7 @@ type Overlays = {
 };
 
 class Battlezone extends Engine {
-  _gameState: "lobby" | "play" | "death" = "death";
+  _gameState: "lobby" | "play" | "death" = "lobby";
 
   //* gameObjects
   player: PlayerTank;
@@ -40,17 +40,39 @@ class Battlezone extends Engine {
 
   difficultyFactor = 0;
 
-  camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
+  // default camera is first-person
+  private _thirdPerson: boolean = false;
+  thirdPersonCameraDistance: number = 50;
+
+  firstPersonCameraHeight: number = 4;
+  thirdPersonCameraHeight: number = 8;
+
+  camera = new Camera(60, 0.1, 1000, [0, this.firstPersonCameraHeight, 0], [0, 0, 1]);
+
   scenesIDs: ScenesIDs = {};
   overlays: Overlays = {};
 
   //* Game controls
   keysPressed: Set<string> = new Set();
 
+  get thirdPerson() {
+    return this._thirdPerson;
+  }
+  set thirdPerson(val: boolean) {
+    this.player.isVisible = val;
+    this._thirdPerson = val;
+
+    this.camera.position = {
+      x: this.player.position.x,
+      y: this.firstPersonCameraHeight,
+      z: this.player.position.z,
+    };
+  }
+
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);
 
-    this.player = new PlayerTank(this, [0, 0, 0]);
+    this.player = new PlayerTank(this, [0, 0, 0], [0.07, 0.07, 0.07]);
   }
 
   // game state manipulation
@@ -97,7 +119,7 @@ class Battlezone extends Engine {
     }
 
     for (let i = 0; i < this.startingEnemyAmount; i++) {
-      this.spawnTank("normal");
+      // this.spawnTank("normal");
     }
 
     // add player to the scene
@@ -249,9 +271,8 @@ class Battlezone extends Engine {
 
     // assign main camera to player
     // we use 'component' binding similar to unity one
-    this.player.playerCamera = this.mainCamera!;
-
-    setTimeout(() => this.spawnTank(), Math.max(4000, 1000 / this.difficultyFactor));
+    console.log(this.mainCamera);
+    this.player.game.camera = this.mainCamera!;
   }
 
   override Update(): void {
