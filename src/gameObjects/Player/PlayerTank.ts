@@ -5,13 +5,15 @@ import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { motionBlockedMsg } from "../../gui/components/messages";
 import PlayerObstacleOverlap from "../../overlaps/PlayerObstacleOverlap";
 import { BestScore } from "../../util/BestScore";
-import { BULLET_SPEED } from "../../util/consts";
+import { AMMO_MAX, BULLET_SPEED } from "../../util/consts";
 import { INITIAL_PLAYER_BOX_COLLIDER } from "../../util/consts";
 import Missile from "../enemies/Missle";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
   private bulletSpeed = BULLET_SPEED;
+  private maxAmmo = AMMO_MAX;
+  private currentAmmo = AMMO_MAX;
   bulletRange = 400 as const;
 
   // references to game objects
@@ -66,14 +68,6 @@ class PlayerTank extends PhysicalGameObject {
     QuaternionUtils.setFromAxisAngle(this.rotationQuaternion, Vector.normalize(vT), Vector.length(vT));
     QuaternionUtils.normalize(this.rotationQuaternion);
     super.applyQuaternion(this.rotationQuaternion);
-
-    // // Move rotation range form [-pi;pi] to [0;2pi]
-    // this._tempRotation.xAxis = (this._tempRotation.xAxis + xAxis) % (Math.PI * 2);
-    // if (this._tempRotation.xAxis < 0) this._tempRotation.xAxis = Math.PI * 2 - this._tempRotation.xAxis;
-    // this._tempRotation.yAxis = (this._tempRotation.yAxis + yAxis) % (Math.PI * 2);
-    // if (this._tempRotation.yAxis < 0) this._tempRotation.yAxis = Math.PI * 2 - this._tempRotation.yAxis;
-    // this._tempRotation.zAxis = (this._tempRotation.zAxis + zAxis) % (Math.PI * 2);
-    // if (this._tempRotation.zAxis < 0) this._tempRotation.zAxis = Math.PI * 2 - this._tempRotation.zAxis;
   }
 
   private thirdPersonHandle(): void {
@@ -123,7 +117,6 @@ class PlayerTank extends PhysicalGameObject {
       this.rotate(0, -(Math.PI / 180) * (movementDirection || 1) * deltaTime * ROTATION_NORMALIZATION, 0);
     }
 
-    console.log(e);
     if (e.has(" ")) {
       this.shoot();
     }
@@ -146,6 +139,7 @@ class PlayerTank extends PhysicalGameObject {
 
   shoot() {
     if (this.shootDelay) return;
+    if (this.currentAmmo === 0) return;
     this.shootDelay = true;
 
     const bullet = new Bullet(
@@ -156,7 +150,7 @@ class PlayerTank extends PhysicalGameObject {
     console.log(Object.values(Vector.add(this.position, this.game.camera!.lookDir)) as Vec3DTuple);
 
     // to make bullet fly over, not on the ground
-    bullet.position.y = 5;
+    bullet.position.y = 4;
 
     const bulletId = this.game.currentScene.addGameObject(bullet);
 
@@ -185,6 +179,14 @@ class PlayerTank extends PhysicalGameObject {
       }
     };
 
+    //* decrease current ammo
+    this.currentAmmo--;
+
+    // reload if needed
+    if (this.currentAmmo === 0) {
+      setTimeout(() => (this.currentAmmo = this.maxAmmo), 3000);
+      console.log("reload");
+    }
     setTimeout(() => (this.shootDelay = false), 1000);
   }
 

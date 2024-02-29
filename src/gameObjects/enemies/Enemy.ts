@@ -94,7 +94,7 @@ class Enemy extends PhysicalGameObject {
         return;
       }
     }
-    if(this.collidePlayer)
+    if (this.collidePlayer)
       this.game.currentScene.addOverlap(new PlayerObstacleOverlap(this.game.player, this));
   }
 
@@ -162,10 +162,12 @@ class Enemy extends PhysicalGameObject {
     // Check if the destination is valid (not colliding with obstacles)
     let isValidDestination = true;
     for (const obstacle of this.game.obstacles) {
+      if (!obstacle.boxCollider || !this.boxCollider) continue;
+
       if (
         collideObjects(
-          [Vector.add(this.boxCollider![0], destination), Vector.add(this.boxCollider![1], destination)],
-          obstacle.boxCollider!
+          [Vector.add(this.boxCollider[0], destination), Vector.add(this.boxCollider[1], destination)],
+          obstacle.boxCollider
         )
       ) {
         isValidDestination = false;
@@ -368,7 +370,7 @@ class Enemy extends PhysicalGameObject {
     // rotation has priority over movement
     const previousPosition = { ...this.position };
     if (this.angularVelocity === null) super.updatePhysics(deltaTime);
-    if(collideObjects(this.boxCollider!, this.game.player.boxCollider) && this.collidePlayer) {
+    if (collideObjects(this.boxCollider!, this.game.player.boxCollider) && this.collidePlayer) {
       this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
       return;
     }

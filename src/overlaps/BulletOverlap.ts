@@ -38,7 +38,8 @@ export class BulletOverlap extends Overlap {
     }
 
     if (this.target instanceof Missile) {
-      console.log("ufoufo trafione");
+      console.log("missle trafione");
+      this.game.removeEnemy(this.target);
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.currentScene.removeGameObject(this.bullet.id);
       this.game.player.score += UFO_POINTS;
@@ -54,6 +55,7 @@ export class BulletOverlap extends Overlap {
 
     //* handle enemy collision
     if (this.target instanceof Enemy && !(this.target instanceof UFO)) {
+      console.log("enemy trafione");
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.removeEnemy(this.target);
       this.game.player.score += this.target instanceof SuperEnemy ? SUPER_TANK_POINTS : NORMAL_TANK_POINTS;
@@ -61,10 +63,14 @@ export class BulletOverlap extends Overlap {
       // save score every time player scores to avoid situation of losing their
       // points in case of unfinishing the game properly (e.g. power loss)
       BestScore.checkAndSave(this.game.player.score);
+      this.game.currentScene.removeGameObject(this.bullet.id);
+
+      return;
     }
 
-    //* handle player collision
+    // * handle player collision
     if (this.target instanceof PlayerTank) {
+      console.log("gracz trafione");
       if (this.bullet instanceof Missile) {
         this.target.game.overlays.play?.changeHealthBy(-2);
         this.game.removeEnemy(this.bullet);
@@ -80,6 +86,7 @@ export class BulletOverlap extends Overlap {
       return;
     }
 
+    //* remove on collision with obstacle
     this.game.currentScene.removeGameObject(this.bullet.id);
   }
 }

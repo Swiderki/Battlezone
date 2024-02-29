@@ -115,7 +115,7 @@ class Battlezone extends Engine {
 
     this.scenesIDs.play = this.addScene(playScene);
     this.setCurrentScene(this.scenesIDs.play);
-    
+
     for (let i = 0; i < this.startingObstacleAmount; i++) {
       this.spawnObstacle();
     }
@@ -161,14 +161,23 @@ class Battlezone extends Engine {
   }
 
   addEventListeners(): void {
-    document.addEventListener("keydown", this.handleKeyDown);
-    document.addEventListener("keyup", this.handleKeyUp);
+    window.addEventListener("keydown", this.handleKeyDown);
+    window.addEventListener("keyup", this.handleKeyUp);
+    window.addEventListener("blur", this.clearKeys);
+    window.addEventListener("contextmenu", this.clearKeys);
   }
 
   removeEventListeners(): void {
-    document.removeEventListener("keydown", this.handleKeyDown);
-    document.removeEventListener("keyup", this.handleKeyUp);
+    window.removeEventListener("keydown", this.handleKeyDown);
+    window.removeEventListener("keyup", this.handleKeyUp);
+    window.removeEventListener("blur", this.clearKeys);
+    window.removeEventListener("contextmenu", this.clearKeys);
   }
+
+  clearKeys = () => {
+    this.keysPressed.clear();
+    console.log("blur");
+  };
 
   // those 2 function have to be arrow function to avoid this refering to document
   handleKeyDown = (e: KeyboardEvent) => {
