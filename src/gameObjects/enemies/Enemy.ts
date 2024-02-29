@@ -42,6 +42,11 @@ class Enemy extends PhysicalGameObject {
   // behavior
   protected isTargeting = false;
   protected moveTowardsPlayerChance = 0.5;
+  protected isChasingPlayer = false;
+  protected chaseTimeOut?: number; 
+
+  // color
+  protected currentColor = '#fff';
 
   // rotation
   protected angularVelocity: Rotation3DTuple | null = null;
@@ -117,7 +122,7 @@ class Enemy extends PhysicalGameObject {
     // Random chance to move towards the player
     const keepDistanceFromPlayer = 30;
 
-    if (Math.random() < this.moveTowardsPlayerChance) {
+    if (Math.random() < this.moveTowardsPlayerChance || this.isChasingPlayer) {
       // Calculate direction vector from enemy to player
       const directionToPlayer = Vector.subtract(this.game.player.position, this.position);
       // Normalize the direction vector
@@ -270,6 +275,7 @@ class Enemy extends PhysicalGameObject {
     //* perform actions based on action queue
     switch (this.actionQueue[0].type) {
       case ActionType.Rotate:
+        this.currentColor = 'green';
         const desiredAngle = this.actionQueue[0].data as Rotation3DTuple;
         if (Math.abs(this._tempRotation.yAxis - desiredAngle[1]) <= Math.abs(this.rotationSpeed)) {
           this.rotate(
@@ -286,6 +292,7 @@ class Enemy extends PhysicalGameObject {
         break;
 
       case ActionType.Move:
+        this.currentColor = 'blue';
         const destiny = this.actionQueue[0].data as Vec3D;
         // check if object have reached destiny
         if (distanceToSquared(this.position, destiny) <= 0.01) {
@@ -295,6 +302,7 @@ class Enemy extends PhysicalGameObject {
         }
         break;
       case ActionType.Shoot:
+        this.currentColor = 'red'
         this.shoot();
         this.dequeueAction();
         break;
@@ -307,10 +315,14 @@ class Enemy extends PhysicalGameObject {
         this.dequeueAction();
         break;
       case ActionType.Idle:
+        this.currentColor = '#fff';
         const idleTime = this.actionQueue[0].data as number;
         setTimeout(() => this.dequeueAction(), idleTime);
         break;
     }
+
+
+    this.changeColorOnAction()
   }
 
   //* handle all the movement
@@ -336,16 +348,30 @@ class Enemy extends PhysicalGameObject {
     this.handleActions();
   }
 
+  changeColorOnAction() {
+    for (let i = 0; i < this.getMesh().length; i++) {
+      this.setLineColor(i, this.isChasingPlayer ? 'red' : this.currentColor);
+    }
+  }
+
+
   //* tank behavior
   override Update(): void {
     // shooting player takes priority
     // console.log(this.currentAction)
     const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));
     const canShoot = distanceToPlayer < this.shootingRange && !this.shootOverheat && !this.isTargeting;
-    if (Math.random() < this.shootingChance && canShoot) {
+    if(distanceToPlayer < this.shootingRange) {
+      this.isChasingPlayer = true;
+      if(this.chaseTimeOut) 
+        clearTimeout(this.chaseTimeOut);
+        this.chaseTimeOut = setTimeout(() => this.isChasingPlayer = false, 1000);
+    }
+
+    if ((Math.random() < this.shootingChance && canShoot) || (this.isChasingPlayer && canShoot)) {
       this.cleanActionQueue();
       this.shootPlayer();
-      this.idle(1000);
+      this.idle(this.isChasingPlayer ? 400 : 1000);
       return;
     }
 
