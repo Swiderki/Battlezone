@@ -11,7 +11,6 @@ import { INITIAL_PLAYER_BOX_COLLIDER } from "../../util/consts";
 class PlayerTank extends PhysicalGameObject {
   // constants
   private bulletSpeed = BULLET_SPEED;
-  private movementMultiplayer = 4;
   bulletRange = 400 as const;
 
   // references to game objects
@@ -45,7 +44,7 @@ class PlayerTank extends PhysicalGameObject {
   private rotationQuaternion = { x: 0, y: 0, z: 0, w: 0 };
 
   constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
-    super("objects/tanks/tank.obj", { position, size, rotation });
+    super("objects/enemies/tank.obj", { position, size, rotation });
     this.enemies = game.enemies;
     // this.isHollow = true;
     this.isVisible = game.thirdPerson;
