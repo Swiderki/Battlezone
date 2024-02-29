@@ -7,8 +7,8 @@ export default class Score implements GUIComponent {
 
   private scoreText: GUIText = new GUIText("SCORE:", 20, "monospace", "#f0f", 700);
   private bestScoreText: GUIText = new GUIText("BEST SCORE:", 20, "monospace", "#f0f", 700);
-  scoreGUI: GUIText = new GUIText("", 20, "monospace", "#f0f", 700);
-  bestScoreGUI: GUIText = new GUIText("", 20, "monospace", "#f0f", 700);
+  scoreGUIText: GUIText = new GUIText("", 20, "monospace", "#f0f", 700);
+  bestScoreGUIText: GUIText = new GUIText("", 20, "monospace", "#f0f", 700);
 
   constructor(playerTank: PlayerTank) {
     this.playerTank = playerTank;
@@ -28,30 +28,30 @@ export default class Score implements GUIComponent {
 
   private updateTextPosition() {
     const newScore = `${this.playerTank.score}`;
-    if (this.scoreGUI.text === newScore) return;
+    if (this.scoreGUIText.text === newScore) return;
 
     const xForPoints = this.playerTank.game.width - GUI_MARGIN;
 
-    this.scoreGUI.text = newScore;
+    this.scoreGUIText.text = newScore;
 
-    this.scoreGUI.position = { x: xForPoints - this.scoreGUI.width, y: GUI_MARGIN };
-    this.bestScoreGUI.position = { x: xForPoints - this.bestScoreGUI.width, y: 2 * GUI_MARGIN };
+    this.scoreGUIText.position = { x: xForPoints - this.scoreGUIText.width, y: GUI_MARGIN };
+    this.bestScoreGUIText.position = { x: xForPoints - this.bestScoreGUIText.width, y: 2 * GUI_MARGIN };
 
     const newBestScore = `${this.playerTank.bestScore}`;
-    if (this.bestScoreGUI.text === newBestScore) return;
+    if (this.bestScoreGUIText.text === newBestScore) return;
 
-    this.bestScoreGUI.text = newBestScore;
+    this.bestScoreGUIText.text = newBestScore;
 
-    this.scoreGUI.position = { x: xForPoints - this.scoreGUI.width, y: GUI_MARGIN };
-    this.bestScoreGUI.position = { x: xForPoints - this.bestScoreGUI.width, y: 2 * GUI_MARGIN };
+    this.scoreGUIText.position = { x: xForPoints - this.scoreGUIText.width, y: GUI_MARGIN };
+    this.bestScoreGUIText.position = { x: xForPoints - this.bestScoreGUIText.width, y: 2 * GUI_MARGIN };
   }
 
   render(ctx: CanvasRenderingContext2D) {
     this.updateTextPosition();
 
-    this.scoreGUI.render(ctx);
+    this.scoreGUIText.render(ctx);
     this.scoreText.render(ctx);
-    this.bestScoreGUI.render(ctx);
+    this.bestScoreGUIText.render(ctx);
     this.bestScoreText.render(ctx);
   }
 }

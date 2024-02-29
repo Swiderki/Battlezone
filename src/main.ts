@@ -1,4 +1,4 @@
-import { Engine, Camera, GameObject, GUI } from "drake-engine";
+import { Engine, Camera, GameObject } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
@@ -37,7 +37,6 @@ class Battlezone extends Engine {
   obstacles: Obstacle[] = [];
 
   camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
-  gui: GUI;
   scenesIDs: ScenesIDs = {};
   overlays: Overlays = {};
 
@@ -48,7 +47,6 @@ class Battlezone extends Engine {
     super(canvas);
 
     this.player = new PlayerTank(this, [0, 0, 0]);
-    this.gui = new GUI(this.canvas, this.canvas.getContext("2d")!);
   }
 
   // game state manipulation
