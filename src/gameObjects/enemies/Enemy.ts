@@ -47,6 +47,7 @@ class Enemy extends PhysicalGameObject {
   protected moveTowardsPlayerChance = 0.5;
   protected isChasingPlayer = false;
   protected chaseTimeOut?: number;
+  protected collidePlayer: boolean = true;
 
   // color
   protected currentColor = "#fff";
@@ -93,7 +94,8 @@ class Enemy extends PhysicalGameObject {
         return;
       }
     }
-    this.game.currentScene.addOverlap(new PlayerObstacleOverlap(this.game.player, this));
+    if(this.collidePlayer)
+      this.game.currentScene.addOverlap(new PlayerObstacleOverlap(this.game.player, this));
   }
 
   //* Queue management
@@ -366,7 +368,7 @@ class Enemy extends PhysicalGameObject {
     // rotation has priority over movement
     const previousPosition = { ...this.position };
     if (this.angularVelocity === null) super.updatePhysics(deltaTime);
-    if(collideObjects(this.boxCollider!, this.game.player.boxCollider)) {
+    if(collideObjects(this.boxCollider!, this.game.player.boxCollider) && this.collidePlayer) {
       this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
       return;
     }

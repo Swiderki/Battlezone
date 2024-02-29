@@ -7,6 +7,7 @@ import PlayerObstacleOverlap from "../../overlaps/PlayerObstacleOverlap";
 import { BestScore } from "../../util/BestScore";
 import { BULLET_SPEED } from "../../util/consts";
 import { INITIAL_PLAYER_BOX_COLLIDER } from "../../util/consts";
+import Missile from "../enemies/Missle";
 
 class PlayerTank extends PhysicalGameObject {
   // constants
@@ -129,6 +130,8 @@ class PlayerTank extends PhysicalGameObject {
     // check for collision with obstacles
     for (const overlap of this.game.currentScene.overlaps.values()) {
       if (overlap.isHappening() && overlap instanceof PlayerObstacleOverlap) {
+        if(overlap.obj1 instanceof Missile || overlap.obj2 instanceof Missile)
+          return;
         motionBlockedMsg.text = "MOTION BLOCKED BY OBSTACLE";
         this.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
         this.thirdPersonHandle();

@@ -9,6 +9,7 @@ class Missile extends Enemy {
 
     constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
         super(game, position, size, rotation, 'missile');
+        this.collidePlayer = false;
     }
 
     override Start(): void {

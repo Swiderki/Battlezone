@@ -67,13 +67,17 @@ export class BulletOverlap extends Overlap {
       if(this.bullet instanceof Missile) {
         this.target.game.overlays.play?.changeHealthBy(-2);
         this.game.removeEnemy(this.bullet);
+        this.game.currentScene.animatedObjectDestruction(this.bullet.id);
       } else {
         this.target.game.overlays.play?.changeHealthBy(-2);
+        this.game.currentScene.removeGameObject(this.bullet.id);
       }
 
       if (this.target.game.overlays.play?.currentHealth === 0) {
         this.game.setGameStateToDeath();
       }
+
+      return;
     }
 
     this.game.currentScene.removeGameObject(this.bullet.id);
