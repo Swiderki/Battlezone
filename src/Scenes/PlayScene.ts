@@ -1,6 +1,7 @@
 import { BackgroundObjectConfig, GUI, Scene } from "drake-engine";
 import Battlezone from "../main";
 import PlayOverlay from "../gui/overlays/PlayOverlay";
+import DeathOverlay from "../gui/overlays/DeathOverlay";
 
 export default class PlayScene extends Scene {
   private game: Battlezone;
@@ -19,7 +20,15 @@ export default class PlayScene extends Scene {
 
   usePlayOverlay(): void {
     this.game.overlays.play = new PlayOverlay(this.game);
+    this.game.overlays.death?.removeOverlay();
     this.game.overlays.play.applyOverlay(this.gui);
     this.gui.addElement(this.game.overlays.play);
+  }
+
+  useDeathOverlay(): void {
+    this.game.overlays.death = new DeathOverlay(this.game);
+    this.game.overlays.play?.removeOverlay();
+    this.game.overlays.death.applyOverlay(this.gui);
+    this.gui.addElement(this.game.overlays.death);
   }
 }

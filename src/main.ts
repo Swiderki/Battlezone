@@ -10,6 +10,7 @@ import PlayOverlay from "./gui/overlays/PlayOverlay";
 import PlayScene from "./Scenes/PlayScene";
 import SuperEnemy from "./gameObjects/enemies/SuperEnemy";
 import UFO from "./gameObjects/enemies/UFO";
+import DeathOverlay from "./gui/overlays/DeathOverlay";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -22,10 +23,11 @@ type ScenesIDs = {
 type Overlays = {
   lobby?: LobbyOverlay;
   play?: PlayOverlay;
+  death?: DeathOverlay;
 };
 
 class Battlezone extends Engine {
-  _gameState: "lobby" | "play" | "death" = "lobby";
+  _gameState: "lobby" | "play" | "death" = "death";
 
   //* gameObjects
   player: PlayerTank;
@@ -55,7 +57,7 @@ class Battlezone extends Engine {
 
   // game state manipulation
 
-  setGameStateToLobby(): LobbyScene {
+  setGameStateToLobby(): void {
     this.removeAllScenes();
 
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
@@ -74,11 +76,9 @@ class Battlezone extends Engine {
 
     this._gameState = "lobby";
     this.setCurrentScene(this.scenesIDs.lobby!);
-
-    return lobbyScene;
   }
 
-  setGameStateToPlay() {
+  setGameStateToPlay(): void {
     this.removeAllScenes();
 
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
@@ -100,7 +100,7 @@ class Battlezone extends Engine {
     }
 
     for (let i = 0; i < this.startingEnemyAmount; i++) {
-      this.spawnTank('normal');
+      this.spawnTank("normal");
     }
 
     // add player to the scene
@@ -114,34 +114,53 @@ class Battlezone extends Engine {
     setTimeout(() => this.spawnUfo(), 4000 + Math.floor(Math.random() * 6000));
   }
 
+  setGameStateToDeath() {
+    if (!(this.currentScene instanceof PlayScene)) {
+      console.error("Death state can be set only after play state! Current state: ", this._gameState);
+      console.error(this.currentScene);
+      throw new Error();
+    }
+
+    this.currentScene.useDeathOverlay();
+    this.removeEventListeners();
+    this.keysPressed.clear();
+    // this.pauseGame();
+  }
+
   removeAllScenes() {
     this.removeCurrentScene();
-    Object.values(this.scenesIDs).forEach((sceneID) => this.removeScene(sceneID));
+
+    if (this.scenesIDs.lobby) this.removeScene(this.scenesIDs.lobby);
+    if (this.scenesIDs.play) this.removeScene(this.scenesIDs.play);
+
+    delete this.scenesIDs.lobby;
+    delete this.scenesIDs.play;
   }
 
   addEventListeners(): void {
-    document.addEventListener("keydown", this.handleKeyDown.bind(this));
-    document.addEventListener("keyup", this.handleKeyUp.bind(this));
+    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keyup", this.handleKeyUp);
   }
 
   removeEventListeners(): void {
-    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
-    document.removeEventListener("keyup", this.handleKeyUp.bind(this));
+    document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener("keyup", this.handleKeyUp);
   }
 
-  handleKeyDown(e: KeyboardEvent): void {
+  // those 2 function have to be arrow function to avoid this refering to document
+  handleKeyDown = (e: KeyboardEvent) => {
     this.keysPressed.add(e.key.toLocaleLowerCase());
-  }
+  };
 
-  handleKeyUp(e: KeyboardEvent): void {
+  handleKeyUp = (e: KeyboardEvent) => {
     this.keysPressed.delete(e.key.toLocaleLowerCase());
-  }
+  };
 
-  spawnTank(type: 'normal' | 'super') {
+  spawnTank(type: "normal" | "super") {
     if (!this.currentScene) return;
     const randomPos = this.pickValidCoridantes();
 
-    if(type === 'normal') {
+    if (type === "normal") {
       const enemy = new Enemy(this, [randomPos.x, 0, randomPos.z], [0.07, 0.07, 0.07]);
 
       this.enemies.push(enemy);
@@ -176,19 +195,22 @@ class Battlezone extends Engine {
     const superEnemyPercentage = Math.max(0, Math.min(0.4, this.difficultyFactor / 1));
     const superEnemiesAmount = Math.floor(maxEnemies * superEnemyPercentage);
     const regularEnemiesAmount = maxEnemies - superEnemiesAmount;
-    
-    console.table([['difficulty', 'enemies', 'super enemies', 'super enemies %'], [this.difficultyFactor, regularEnemiesAmount, superEnemiesAmount, superEnemyPercentage]]);
+
+    console.table([
+      ["difficulty", "enemies", "super enemies", "super enemies %"],
+      [this.difficultyFactor, regularEnemiesAmount, superEnemiesAmount, superEnemyPercentage],
+    ]);
     // Count currently deployed enemies
     let currentEnemiesAmount = 0;
     let currentSuperEnemiesAmount = 0;
     for (const enemy of this.enemies) {
-        if (enemy instanceof Enemy) {
-            if (enemy instanceof SuperEnemy) {
-                currentSuperEnemiesAmount++;
-            } else {
-                currentEnemiesAmount++;
-            }
+      if (enemy instanceof Enemy) {
+        if (enemy instanceof SuperEnemy) {
+          currentSuperEnemiesAmount++;
+        } else {
+          currentEnemiesAmount++;
         }
+      }
     }
 
     // Determine how many more enemies to spawn
@@ -197,14 +219,14 @@ class Battlezone extends Engine {
 
     // Spawn regular enemies
     for (let i = 0; i < remainingRegularEnemies; i++) {
-        this.spawnTank('normal');
+      this.spawnTank("normal");
     }
 
     // Spawn super enemies
     for (let i = 0; i < remainingSuperEnemies; i++) {
-        // Spawn super enemies with different properties
-        // For now, let's assume it's similar to spawning regular enemies
-        this.spawnTank('super');
+      // Spawn super enemies with different properties
+      // For now, let's assume it's similar to spawning regular enemies
+      this.spawnTank("super");
     }
   }
 
@@ -235,6 +257,7 @@ class Battlezone extends Engine {
     // assign main camera to player
     // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
+
   }
 
   pickValidCoridantes(): Vec3D {

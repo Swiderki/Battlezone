@@ -33,7 +33,10 @@ class HealthBar implements GUIComponent {
   }
 
   set currentHealth(value: number) {
-    if (this._currentHealth === value || value <= 0) return; // no change or health below zero
+    if (this._currentHealth === value) return;
+
+    console.log(value);
+
     this._heartIcons = [];
     for (let i = 0; i < value; i++) {
       const healthIcon = new HeartIcon({

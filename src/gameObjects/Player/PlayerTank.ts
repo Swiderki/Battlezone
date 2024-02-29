@@ -107,6 +107,9 @@ class PlayerTank extends PhysicalGameObject {
       [0.01, 0.01, 0.01]
     );
 
+    // to make bullet fly over, not on the ground
+    bullet.position.y = 2;
+
     const bulletId = this.game.currentScene.addGameObject(bullet);
 
     bullet.Start = () => {
