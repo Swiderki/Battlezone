@@ -11,6 +11,7 @@ import PlayScene from "./Scenes/PlayScene";
 import SuperEnemy from "./gameObjects/enemies/SuperEnemy";
 import UFO from "./gameObjects/enemies/UFO";
 import DeathOverlay from "./gui/overlays/DeathOverlay";
+import Missile from "./gameObjects/enemies/Missle";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -112,6 +113,9 @@ class Battlezone extends Engine {
     this.addEventListeners();
 
     setTimeout(() => this.spawnUfo(), 4000 + Math.floor(Math.random() * 6000));
+    
+    setTimeout(() => this.spawnMissile(), 10000 + Math.floor(Math.random() * 10000));
+    
   }
 
   setGameStateToDeath() {
@@ -179,6 +183,14 @@ class Battlezone extends Engine {
     const pos = this.pickValidCoridantes();
     this.ufo = new UFO(this, [pos.x, 0, pos.z], [.07, .07, .07]);
     this.currentScene.addGameObject(this.ufo);
+  }
+
+  spawnMissile() {
+    const pos = this.pickValidCoridantes();
+    const missile = new Missile(this, [pos.x, 0, pos.z], [.07, .07, .07]);
+    this.currentScene.addGameObject(missile);
+    this.enemies.push(missile);
+
   }
 
   removeEnemy(enemy: Enemy) {

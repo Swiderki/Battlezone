@@ -7,13 +7,14 @@ import { BestScore } from "../util/BestScore";
 import PlayerTank from "../gameObjects/Player/PlayerTank";
 import SuperEnemy from "../gameObjects/enemies/SuperEnemy";
 import UFO from "../gameObjects/enemies/UFO";
+import Missile from "../gameObjects/enemies/Missle";
 
 export class BulletOverlap extends Overlap {
   private game: Battlezone;
   target: GameObject;
   bullet: Bullet;
 
-  constructor(obj1: Bullet, obj2: GameObject, game: Battlezone) {
+  constructor(obj1: Bullet | Missile, obj2: GameObject, game: Battlezone) {
     super(obj1, obj2);
     this.game = game;
     this.bullet = obj1;
@@ -21,7 +22,6 @@ export class BulletOverlap extends Overlap {
   }
 
   override onOverlap(): void {
-    console.log(123)
     if (!this.game.currentScene) return;
 
     //* handle ufo collision
@@ -32,10 +32,23 @@ export class BulletOverlap extends Overlap {
       this.game.player.score += UFO_POINTS;
       BestScore.checkAndSave(this.game.player.score);
 
-      // sprawn new ufo after some time
+      // spawn new ufo after some time
       setTimeout(() => this.game.spawnUfo(), 4000 + Math.floor(Math.random() * 6000))
       return;
     }
+    
+    if(this.target instanceof Missile) {
+      console.log('ufoufo trafione')
+      this.game.currentScene.animatedObjectDestruction(this.target.id);
+      this.game.currentScene.removeGameObject(this.bullet.id);
+      this.game.player.score += UFO_POINTS;
+      BestScore.checkAndSave(this.game.player.score);
+  
+      // spawn new missile after some time
+      setTimeout(() => this.game.spawnMissile(), Math.max(Math.floor(Math.random() * (1200 / Math.max(this.game.difficultyFactor - 1, .1))), 6000));
+      return;
+    }
+
 
     //* handle enemy collision
     if (this.target instanceof Enemy && !(this.target instanceof UFO)) {
@@ -51,7 +64,12 @@ export class BulletOverlap extends Overlap {
 
     //* handle player collision
     if (this.target instanceof PlayerTank) {
-      this.target.game.overlays.play?.changeHealthBy(-1);
+      if(this.bullet instanceof Missile) {
+        this.target.game.overlays.play?.changeHealthBy(-2);
+        this.game.removeEnemy(this.bullet);
+      } else {
+        this.target.game.overlays.play?.changeHealthBy(-2);
+      }
 
       if (this.target.game.overlays.play?.currentHealth === 0) {
         this.game.setGameStateToDeath();

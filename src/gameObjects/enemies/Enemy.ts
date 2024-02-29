@@ -74,7 +74,7 @@ class Enemy extends PhysicalGameObject {
     rotation?: Vec3DTuple,
     model = "tank"
   ) {
-    super(`public/objects/tanks/${model}.obj`, { position, size, rotation });
+    super(`public/objects/enemies/${model}.obj`, { position, size, rotation });
     // this.showBoxcollider = true;
     this.autoupdateBoxCollider = true;
     this.showBoxcollider = true;
