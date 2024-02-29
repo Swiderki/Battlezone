@@ -9,7 +9,7 @@ class UFO extends Enemy {
 
     constructor(game: Battlezone, position?: Vec3DTuple, size?: Vec3DTuple, rotation?: Vec3DTuple) {
         super(game, position, size, rotation, 'ufo');
-        console.log(this.position);
+        this.boxColliderScale = 1.1;
     }
 
     override Update(): void {
