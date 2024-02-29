@@ -12,6 +12,7 @@ import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { collideObjects } from "../../util/rayCast";
 import { BULLET_SPEED } from "../../util/consts";
+import PlayerObstacleOverlap from "../../overlaps/PlayerObstacleOverlap";
 
 export enum ActionType {
   Rotate,
@@ -92,6 +93,7 @@ class Enemy extends PhysicalGameObject {
         return;
       }
     }
+    this.game.currentScene.addOverlap(new PlayerObstacleOverlap(this.game.player, this));
   }
 
   //* Queue management
@@ -364,6 +366,10 @@ class Enemy extends PhysicalGameObject {
     // rotation has priority over movement
     const previousPosition = { ...this.position };
     if (this.angularVelocity === null) super.updatePhysics(deltaTime);
+    if(collideObjects(this.boxCollider!, this.game.player.boxCollider)) {
+      this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
+      return;
+    }
 
     // Check for collisions with obstacles
     for (const obstacle of this.game.obstacles) {

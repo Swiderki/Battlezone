@@ -268,6 +268,9 @@ class Battlezone extends Engine {
     randomX *= Math.random() > 0.5 ? 1 : -1;
     randomZ *= Math.random() > 0.5 ? 1 : -1;
     const pos = {x: randomX, y: 0, z: randomZ};
+    const playerDistance = Vector.length(Vector.subtract(this.player.position, pos));
+    if(playerDistance < 60)
+      return this.pickValidCoridantes();
     for(const obstacle of this.obstacles) {
       const distance = Vector.length(Vector.subtract(obstacle.position, pos));
       if(distance < 60)
