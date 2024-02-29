@@ -1,5 +1,5 @@
 import { GUI, GUIComponent } from "drake-engine";
-import Battlezone from "../../../main";
+import Battlezone from "../../main";
 
 export default class Overlay implements GUIComponent {
   protected game: Battlezone;

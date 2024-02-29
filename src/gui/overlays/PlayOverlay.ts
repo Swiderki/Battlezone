@@ -1,10 +1,10 @@
-import Battlezone from "../../../main";
+import Battlezone from "../../main";
 import Score from "../components/Score";
 import Crosshair from "../components/crosshair";
 import HealthBar from "../components/healthbar";
 import { enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg } from "../components/messages";
 import Radar from "../components/radar";
-import { rayCast } from "../../../util/rayCast";
+import { rayCast } from "../../util/rayCast";
 import { GUIComponent } from "drake-engine";
 import Overlay from "./Overlay";
 
@@ -52,15 +52,6 @@ export default class PlayOverlay extends Overlay {
         component.currentHealth += amount;
       }
     }
-  }
-
-  get currentHealth() {
-    for (const component of this.components) {
-      if (component instanceof HealthBar) {
-        return component.currentHealth;
-      }
-    }
-    return null;
   }
 
   get currentHealth() {

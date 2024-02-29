@@ -1,5 +1,5 @@
 import { GUIComponent, Icon, Vec2D } from "drake-engine";
-import { GUI_MARGIN, INITIAL_PLAYER_HEALTH } from "../../../util/consts";
+import { GUI_MARGIN, INITIAL_PLAYER_HEALTH } from "../../util/consts";
 
 class HealthBar implements GUIComponent {
   //* references

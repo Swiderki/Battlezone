@@ -1,5 +1,5 @@
 import { Button } from "drake-engine";
-import Battlezone from "../../../main";
+import Battlezone from "../../main";
 
 export default class StartButton extends Button {
   game: Battlezone;

@@ -9,7 +9,7 @@ import {
 } from "drake-engine";
 import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
-import { BulletOverlap } from "../overlaps/BulletOverlap";
+import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { collideObjects } from "../../util/rayCast";
 
 enum ActionType {
@@ -115,7 +115,6 @@ class Enemy extends PhysicalGameObject {
     //* If there is obstacle in a way we simply 'spin the wheel of fortune' again
     //* We have to finally be able to move right?
     // Random chance to move towards the player
-    const moveTowardsPlayerChance = 0.3; // Adjust as needed
     const keepDistanceFromPlayer = 30;
 
     if (Math.random() < this.moveTowardsPlayerChance) {
@@ -338,7 +337,7 @@ class Enemy extends PhysicalGameObject {
   }
 
   //* tank behavior
-  override Update(deltaTime: number): void {
+  override Update(): void {
     // shooting player takes priority
     // console.log(this.currentAction)
     const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));

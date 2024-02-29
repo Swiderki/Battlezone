@@ -1,6 +1,6 @@
 import { Overlap } from "drake-engine";
-import PlayerTank from "../Player/PlayerTank";
-import Obstacle from "../obstacles/Obstacle";
+import PlayerTank from "../gameObjects/Player/PlayerTank";
+import Obstacle from "../gameObjects/obstacles/Obstacle";
 
 export default class PlayerObstacleOverlap extends Overlap {
   declare obj1: PlayerTank;

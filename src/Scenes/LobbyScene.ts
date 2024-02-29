@@ -1,6 +1,6 @@
 import { BackgroundObjectConfig, GUI, Scene } from "drake-engine";
 import Battlezone from "../main";
-import LobbyOverlay from "../gameObjects/gui/overlays/LobbyOverlay";
+import LobbyOverlay from "../gui/overlays/LobbyOverlay";
 
 export default class LobbyScene extends Scene {
   private game: Battlezone;

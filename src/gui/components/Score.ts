@@ -1,6 +1,6 @@
 import { GUIComponent, GUIText } from "drake-engine";
-import { GUI_MARGIN } from "../../../util/consts";
-import PlayerTank from "../../Player/PlayerTank";
+import { GUI_MARGIN } from "../../util/consts";
+import PlayerTank from "../../gameObjects/Player/PlayerTank";
 
 export default class Score implements GUIComponent {
   private playerTank: PlayerTank;

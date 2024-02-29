@@ -1,12 +1,12 @@
-import { Engine, Camera, Scene, GameObject, GUI, Vec3DTuple } from "drake-engine";
+import { Engine, Camera, GameObject } from "drake-engine";
 import _default from "drake-engine";
 import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
-import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
+import PlayerObstacleOverlap from "./overlaps/PlayerObstacleOverlap";
 import LobbyScene from "./Scenes/LobbyScene";
-import LobbyOverlay from "./gameObjects/gui/overlays/LobbyOverlay";
-import PlayOverlay from "./gameObjects/gui/overlays/PlayOverlay";
+import LobbyOverlay from "./gui/overlays/LobbyOverlay";
+import PlayOverlay from "./gui/overlays/PlayOverlay";
 import PlayScene from "./Scenes/PlayScene";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
@@ -89,7 +89,15 @@ class Battlezone extends Engine {
     this.scenesIDs.play = this.addScene(playScene);
     this.setCurrentScene(this.scenesIDs.play);
 
-    console.log(playScene, this.currentScene);
+    // test purpose only
+    // this.spawnTank();
+    for (let i = 0; i < this.obstacleCount; i++) {
+      this.spawnObstacle();
+    }
+
+    for (let i = 0; i < this.enemyCount; i++) {
+      this.spawnTank();
+    }
 
     // add player to the scene
     playScene.addGameObject(this.player);
@@ -98,10 +106,6 @@ class Battlezone extends Engine {
 
     // add all essential event listeners
     this.addEventListeners();
-
-    // test purpose only
-    // this.spawnTank();
-    this.spawnObstacle();
   }
 
   removeAllScenes() {
@@ -172,21 +176,11 @@ class Battlezone extends Engine {
     this.setResolution(1280, 720);
 
     // Scene set up
-    const lobbyScene = this.setGameStateToLobby();
+    this.setGameStateToLobby();
 
     // assign main camera to player
     // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
-
-    // test purpose only
-    // this.spawnTank();
-    for (let i = 0; i < this.obstacleCount; i++) {
-      this.spawnObstacle();
-    }
-
-    for (let i = 0; i < this.enemyCount; i++) {
-      this.spawnTank();
-    }
   }
 
   override Update(): void {

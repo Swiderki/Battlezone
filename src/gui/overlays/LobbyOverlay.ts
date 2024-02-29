@@ -1,4 +1,4 @@
-import Battlezone from "../../../main";
+import Battlezone from "../../main";
 import Overlay from "./Overlay";
 import StartButton from "../components/StartButton";
 

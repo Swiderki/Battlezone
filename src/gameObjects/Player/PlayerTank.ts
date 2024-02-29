@@ -1,9 +1,9 @@
-import { Camera,  GameObject, Line3D, PhysicalGameObject, Vec3DTuple, Vector } from "drake-engine";
+import { Camera, GameObject, Line3D, PhysicalGameObject, Vec3DTuple, Vector } from "drake-engine";
 import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
-import { BulletOverlap } from "../overlaps/BulletOverlap";
-import { motionBlockedMsg } from "../gui/components/messages";
-import PlayerObstacleOverlap from "../overlaps/PlayerObstacleOverlap";
+import { BulletOverlap } from "../../overlaps/BulletOverlap";
+import { motionBlockedMsg } from "../../gui/components/messages";
+import PlayerObstacleOverlap from "../../overlaps/PlayerObstacleOverlap";
 import { BestScore } from "../../util/BestScore";
 
 class PlayerTank extends PhysicalGameObject {
@@ -16,15 +16,14 @@ class PlayerTank extends PhysicalGameObject {
   playerCamera?: Camera;
   enemies: GameObject[];
   game: Battlezone;
-  
-  
+
   // shooting
   shootDelay = false;
 
   // score
-  score: number = 0
-  bestScore: number = BestScore.get()
-  
+  score: number = 0;
+  bestScore: number = BestScore.get();
+
   // overrides
   override boxCollider: Line3D;
 
@@ -96,7 +95,6 @@ class PlayerTank extends PhysicalGameObject {
 
     motionBlockedMsg.text = "";
   }
-
 
   shoot() {
     if (this.shootDelay) return;
@@ -176,7 +174,6 @@ class PlayerTank extends PhysicalGameObject {
       },
     ];
   }
-
 }
 
 export default PlayerTank;
