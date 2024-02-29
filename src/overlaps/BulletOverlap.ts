@@ -25,34 +25,35 @@ export class BulletOverlap extends Overlap {
     if (!this.game.currentScene) return;
 
     //* handle ufo collision
-    if(this.target instanceof UFO) {
-      console.log('ufoufo trafione')
+    if (this.target instanceof UFO) {
+      console.log("ufoufo trafione");
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.currentScene.removeGameObject(this.bullet.id);
       this.game.player.score += UFO_POINTS;
       BestScore.checkAndSave(this.game.player.score);
 
       // spawn new ufo after some time
-      setTimeout(() => this.game.spawnUfo(), 4000 + Math.floor(Math.random() * 6000))
+      setTimeout(() => this.game.spawnUfo(), 4000 + Math.floor(Math.random() * 6000));
       return;
     }
-    
-    if(this.target instanceof Missile) {
-      console.log('ufoufo trafione')
+
+    if (this.target instanceof Missile) {
+      console.log("ufoufo trafione");
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.currentScene.removeGameObject(this.bullet.id);
       this.game.player.score += UFO_POINTS;
       BestScore.checkAndSave(this.game.player.score);
-  
+
       // spawn new missile after some time
-      setTimeout(() => this.game.spawnMissile(), Math.max(Math.floor(Math.random() * (1200 / Math.max(this.game.difficultyFactor - 1, .1))), 6000));
+      setTimeout(
+        () => this.game.spawnMissile(),
+        Math.max(Math.floor(Math.random() * (1200 / Math.max(this.game.difficultyFactor - 1, 0.1))), 6000)
+      );
       return;
     }
 
-
     //* handle enemy collision
     if (this.target instanceof Enemy && !(this.target instanceof UFO)) {
-      
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.removeEnemy(this.target);
       this.game.player.score += this.target instanceof SuperEnemy ? SUPER_TANK_POINTS : NORMAL_TANK_POINTS;
@@ -64,10 +65,9 @@ export class BulletOverlap extends Overlap {
 
     //* handle player collision
     if (this.target instanceof PlayerTank) {
-      if(this.bullet instanceof Missile) {
+      if (this.bullet instanceof Missile) {
         this.target.game.overlays.play?.changeHealthBy(-2);
         this.game.removeEnemy(this.bullet);
-        this.game.currentScene.animatedObjectDestruction(this.bullet.id);
       } else {
         this.target.game.overlays.play?.changeHealthBy(-2);
         this.game.currentScene.removeGameObject(this.bullet.id);

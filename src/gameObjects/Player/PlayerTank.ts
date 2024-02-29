@@ -123,15 +123,15 @@ class PlayerTank extends PhysicalGameObject {
       this.rotate(0, -(Math.PI / 180) * (movementDirection || 1) * deltaTime * ROTATION_NORMALIZATION, 0);
     }
 
-    if (e.has("z")) {
+    console.log(e);
+    if (e.has(" ")) {
       this.shoot();
     }
 
     // check for collision with obstacles
     for (const overlap of this.game.currentScene.overlaps.values()) {
       if (overlap.isHappening() && overlap instanceof PlayerObstacleOverlap) {
-        if(overlap.obj1 instanceof Missile || overlap.obj2 instanceof Missile)
-          return;
+        if (overlap.obj1 instanceof Missile || overlap.obj2 instanceof Missile) return;
         motionBlockedMsg.text = "MOTION BLOCKED BY OBSTACLE";
         this.setPosition(prevPosition.x, prevPosition.y, prevPosition.z);
         this.thirdPersonHandle();
