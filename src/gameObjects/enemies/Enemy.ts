@@ -11,6 +11,8 @@ import Battlezone from "../../main";
 import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { collideObjects } from "../../util/rayCast";
+import { BULLET_SPEED } from "../../util/consts";
+import PlayerObstacleOverlap from "../../overlaps/PlayerObstacleOverlap";
 
 export enum ActionType {
   Rotate,
@@ -33,7 +35,7 @@ class Enemy extends PhysicalGameObject {
   readonly rotationSpeed = (Math.PI / 180) * 2;
 
   // shooting
-  protected bulletSpeed = 180;
+  protected bulletSpeed = BULLET_SPEED;
   protected shootingRange = 200;
   protected bulletRange = 150;
   protected shootDelay = 5 * 1000;
@@ -72,7 +74,7 @@ class Enemy extends PhysicalGameObject {
     rotation?: Vec3DTuple,
     model = "tank"
   ) {
-    super(`public/objects/tanks/${model}.obj`, { position, size, rotation });
+    super(`public/objects/enemies/${model}.obj`, { position, size, rotation });
     // this.showBoxcollider = true;
     this.autoupdateBoxCollider = true;
     this.showBoxcollider = true;
@@ -91,6 +93,7 @@ class Enemy extends PhysicalGameObject {
         return;
       }
     }
+    this.game.currentScene.addOverlap(new PlayerObstacleOverlap(this.game.player, this));
   }
 
   //* Queue management
@@ -363,6 +366,10 @@ class Enemy extends PhysicalGameObject {
     // rotation has priority over movement
     const previousPosition = { ...this.position };
     if (this.angularVelocity === null) super.updatePhysics(deltaTime);
+    if(collideObjects(this.boxCollider!, this.game.player.boxCollider)) {
+      this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
+      return;
+    }
 
     // Check for collisions with obstacles
     for (const obstacle of this.game.obstacles) {

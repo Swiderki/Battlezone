@@ -57,7 +57,7 @@ export default class PlayOverlay extends Overlay {
   get currentHealth() {
     for (const component of this.components) {
       if (component instanceof HealthBar) {
-        return component.currentHealth;
+        return Math.max(component.currentHealth, 0);
       }
     }
     return null;
