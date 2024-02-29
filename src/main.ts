@@ -4,17 +4,26 @@ import PlayerTank from "./gameObjects/Player/PlayerTank";
 import Enemy from "./gameObjects/enemies/Enemy";
 import Obstacle from "./gameObjects/obstacles/Obstacle";
 import PlayerObstacleOverlap from "./gameObjects/overlaps/PlayerObstacleOverlap";
+import LobbyScene from "./Scenes/LobbyScene";
+import LobbyOverlay from "./gameObjects/gui/overlays/LobbyOverlay";
 import PlayOverlay from "./gameObjects/gui/overlays/PlayOverlay";
+import PlayScene from "./Scenes/PlayScene";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
 
+type ScenesIDs = {
+  lobby?: number;
+  play?: number;
+};
+
 type Overlays = {
+  lobby?: LobbyOverlay;
   play?: PlayOverlay;
 };
 
 class Battlezone extends Engine {
-  gameState: "lobby" | "play" | "death" = "lobby";
+  _gameState: "lobby" | "play" | "death" = "lobby";
 
   //* gameObjects
   player: PlayerTank;
@@ -25,10 +34,11 @@ class Battlezone extends Engine {
   private readonly spawnSize = [40, 40];
   private readonly enemyCount = 10;
   private readonly obstacleCount = 20;
-  
-  difficultyFactor = .1;
 
-  gui: GUI;
+  difficultyFactor = 0.1;
+
+  camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
+  scenesIDs: ScenesIDs = {};
   overlays: Overlays = {};
 
   //* Game controls
@@ -36,9 +46,101 @@ class Battlezone extends Engine {
 
   constructor(canvas: HTMLCanvasElement) {
     super(canvas);
-    
+
     this.player = new PlayerTank(this, [0, 0, 0]);
-    this.gui = new GUI(this.canvas, this.canvas.getContext("2d")!);
+  }
+
+  // game state manipulation
+
+  setGameStateToLobby(): LobbyScene {
+    this.removeAllScenes();
+
+    const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
+    const lobbyScene = new LobbyScene(this, {
+      object: sceneBg,
+      position: { x: 0, y: this.canvas.height / 2 },
+      repeat: true,
+      rotationLikeCameraSpeed: 6,
+    });
+    lobbyScene.useLobbyOverlay();
+
+    this.scenesIDs.lobby = this.addScene(lobbyScene);
+
+    this.removeEventListeners();
+
+    this._gameState = "lobby";
+    this.setCurrentScene(this.scenesIDs.lobby!);
+
+    return lobbyScene;
+  }
+
+  setGameStateToPlay() {
+    this.removeAllScenes();
+
+    const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
+    const playScene = new PlayScene(this, {
+      object: sceneBg,
+      position: { x: 0, y: this.canvas.height / 2 },
+      repeat: true,
+      rotationLikeCameraSpeed: 6,
+    });
+    playScene.usePlayOverlay();
+
+    this.scenesIDs.play = this.addScene(playScene);
+    this.setCurrentScene(this.scenesIDs.play);
+
+    console.log(playScene, this.currentScene);
+
+    // add player to the scene
+    playScene.addGameObject(this.player);
+
+    this.enemies.forEach((enemy) => playScene.addGameObject(enemy));
+
+    // add all essential event listeners
+    this.addEventListeners();
+
+    // test purpose only
+    // this.spawnTank();
+    this.spawnObstacle();
+  }
+
+  removeAllScenes() {
+    this.removeCurrentScene();
+    Object.values(this.scenesIDs).forEach((sceneID) => this.removeScene(sceneID));
+    setTimeout(() => this.spawnTank(), Math.max(4000, 1000 / this.difficultyFactor));
+  }
+
+  addEventListeners(): void {
+    document.addEventListener("keydown", this.handleKeyDown.bind(this));
+    document.addEventListener("keyup", this.handleKeyUp.bind(this));
+  }
+
+  removeEventListeners(): void {
+    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
+    document.removeEventListener("keyup", this.handleKeyUp.bind(this));
+  }
+
+  handleKeyDown(e: KeyboardEvent): void {
+    this.keysPressed.add(e.key.toLocaleLowerCase());
+  }
+
+  handleKeyUp(e: KeyboardEvent): void {
+    this.keysPressed.delete(e.key.toLocaleLowerCase());
+  }
+
+  spawnTank() {
+    if (!this.currentScene) return;
+    let randomX =
+      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
+    let randomZ =
+      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
+    randomX *= Math.random() > 0.5 ? 1 : -1;
+    randomZ *= Math.random() > 0.5 ? 1 : -1;
+
+    const enemy = new Enemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
+
+    this.enemies.push(enemy);
+    this.currentScene.addGameObject(enemy);
   }
 
   removeEnemy(enemy: Enemy) {
@@ -46,44 +148,19 @@ class Battlezone extends Engine {
     if (index !== -1) {
       this.enemies.splice(index, 1);
     }
-    setTimeout(() => this.spawnTank(), Math.max(4000, 1000 / this.difficultyFactor));
-  }
-
-  addEventListeners() {
-    document.addEventListener("keydown", this.handleKeyDown.bind(this));
-    document.addEventListener("keyup", this.handleKeyUp.bind(this));
-  }
-
-  handleKeyDown(e: KeyboardEvent) {
-    this.keysPressed.add(e.key.toLocaleLowerCase());
-  }
-
-  handleKeyUp(e: KeyboardEvent) {
-    this.keysPressed.delete(e.key.toLocaleLowerCase());
-  }
-
-  spawnTank() {
-    if (!this.currentScene) return;
-    let randomX = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[0]) / 2) + this.spawnSize[0];
-    let randomZ = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[1]) / 2) + this.spawnSize[1];
-    randomX *= Math.random() > .5 ? 1 : -1;
-    randomZ *= Math.random() > .5 ? 1 : -1;
-
-    const enemy = new Enemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
-    
-    this.enemies.push(enemy);
-    this.currentScene.addGameObject(enemy);
   }
 
   spawnObstacle() {
     if (!this.currentScene) return;
-    let randomX = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[0]) / 2) + this.spawnSize[0];
-    let randomZ = Math.round(Math.random() * (this.battfledSize[0] - this.spawnSize[1]) / 2) + this.spawnSize[1];
-    randomX *= Math.random() > .5 ? 1 : -1;
-    randomZ *= Math.random() > .5 ? 1 : -1;
-    
+    let randomX =
+      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
+    let randomZ =
+      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
+    randomX *= Math.random() > 0.5 ? 1 : -1;
+    randomZ *= Math.random() > 0.5 ? 1 : -1;
+
     const obstacle = new Obstacle({ position: [randomX, 0, randomZ], size: [0.1, 0.1, 0.1] });
-    
+
     this.obstacles.push(obstacle);
     this.currentScene.addGameObject(obstacle);
     obstacle.Start = () => {
@@ -93,50 +170,21 @@ class Battlezone extends Engine {
 
   override Start(): void {
     this.setResolution(1280, 720);
-    const camera = new Camera(60, 0.1, 10000, [this.player.position.x, 6, this.player.position.y], [0, 0, 1]);
+
     // Scene set up
-    const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
-    const mainScene = new Scene({
-      object: sceneBg,
-      position: { x: 0, y: this.canvas.height / 2 },
-      repeat: true,
-      rotationLikeCameraSpeed: 6,
-    });
-
-    mainScene.setMainCamera(camera, this.width, this.height); // add camera to scene
-
-    const mainSceneId = this.addScene(mainScene);
-    this.setCurrentScene(mainSceneId);
+    const lobbyScene = this.setGameStateToLobby();
 
     // assign main camera to player
     // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
 
-    // gui setup
-    const playerGUIId = mainScene.addGUI(this.gui);
-    mainScene.setCurrentGUI(playerGUIId);
-
-    this.overlays.play = new PlayOverlay(this);
-    this.overlays.play.applyOverlay();
-    this.gui.addElement(this.overlays.play);
-
-    // add player to the scene
-    mainScene.addGameObject(this.player);
-
-    this.enemies.forEach((enemy) => mainScene.addGameObject(enemy));
-
-    // add all essential event listeners
-    this.addEventListeners();
-
-    //* start the main scene
-    mainScene._started = true;
-
     // test purpose only
-    for(let i=0;i<this.obstacleCount;i++) {
+    // this.spawnTank();
+    for (let i = 0; i < this.obstacleCount; i++) {
       this.spawnObstacle();
     }
 
-    for(let i=0;i<this.enemyCount;i++) {
+    for (let i = 0; i < this.enemyCount; i++) {
       this.spawnTank();
     }
   }

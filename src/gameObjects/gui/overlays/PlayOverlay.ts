@@ -6,15 +6,14 @@ import { enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg } from "../componen
 import Radar from "../components/radar";
 import { rayCast } from "../../../util/rayCast";
 import { GUIComponent } from "drake-engine";
+import Overlay from "./Overlay";
 
-export default class PlayOverlay implements GUIComponent {
-  private game: Battlezone;
+export default class PlayOverlay extends Overlay {
   private crosshair?: Crosshair;
-  private components: GUIComponent[] = [enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg];
-  private componentsIDs: number[] = [];
+  override components: GUIComponent[] = [enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg];
 
   constructor(game: Battlezone) {
-    this.game = game;
+    super(game);
 
     this.initComponents();
   }
@@ -64,21 +63,16 @@ export default class PlayOverlay implements GUIComponent {
     return null;
   }
 
-  applyOverlay(): void {
+  get currentHealth() {
     for (const component of this.components) {
-      const id = this.game.gui.addElement(component);
-      this.componentsIDs.push(id);
+      if (component instanceof HealthBar) {
+        return component.currentHealth;
+      }
     }
+    return null;
   }
 
-  removeOverlay(): void {
-    for (const id of this.componentsIDs) {
-      this.game.gui.removeElement(id);
-    }
-    this.componentsIDs = [];
-  }
-
-  render(): void {
+  override render(): void {
     this.handleCrosshair();
   }
 }
