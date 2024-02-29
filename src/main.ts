@@ -8,6 +8,7 @@ import LobbyScene from "./Scenes/LobbyScene";
 import LobbyOverlay from "./gui/overlays/LobbyOverlay";
 import PlayOverlay from "./gui/overlays/PlayOverlay";
 import PlayScene from "./Scenes/PlayScene";
+import SuperEnemy from "./gameObjects/enemies/SuperEnemy";
 import DeathOverlay from "./gui/overlays/DeathOverlay";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
@@ -32,12 +33,12 @@ class Battlezone extends Engine {
   enemies: GameObject[] = [];
   obstacles: Obstacle[] = [];
 
-  private readonly battfledSize = [1000, 1000];
-  private readonly spawnSize = [40, 40];
-  private readonly enemyCount = 10;
-  private readonly obstacleCount = 20;
+  private readonly battleFieldSize = [1000, 1000];
+  private readonly spawnSize = [60, 60];
+  private readonly startingEnemyAmount = 4;
+  private readonly startingObstacleAmount = 10;
 
-  difficultyFactor = 0.1;
+  difficultyFactor = 0;
 
   camera = new Camera(60, 0.1, 1000, [0, 4, 0], [0, 0, 1]);
   scenesIDs: ScenesIDs = {};
@@ -91,12 +92,12 @@ class Battlezone extends Engine {
 
     // test purpose only
     // this.spawnTank();
-    for (let i = 0; i < this.obstacleCount; i++) {
+    for (let i = 0; i < this.startingObstacleAmount; i++) {
       this.spawnObstacle();
     }
 
-    for (let i = 0; i < this.enemyCount; i++) {
-      this.spawnTank();
+    for (let i = 0; i < this.startingEnemyAmount; i++) {
+      this.spawnTank("normal");
     }
 
     // add player to the scene
@@ -150,16 +151,24 @@ class Battlezone extends Engine {
     this.keysPressed.delete(e.key.toLocaleLowerCase());
   };
 
-  spawnTank() {
+  spawnTank(type: "normal" | "super") {
     if (!this.currentScene) return;
     let randomX =
-      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
+      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
     let randomZ =
-      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
+      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
     randomX *= Math.random() > 0.5 ? 1 : -1;
     randomZ *= Math.random() > 0.5 ? 1 : -1;
 
-    const enemy = new Enemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
+    if (type === "normal") {
+      const enemy = new Enemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
+
+      this.enemies.push(enemy);
+      this.currentScene.addGameObject(enemy);
+
+      return;
+    }
+    const enemy = new SuperEnemy(this, [randomX, 0, randomZ], [0.07, 0.07, 0.07]);
 
     this.enemies.push(enemy);
     this.currentScene.addGameObject(enemy);
@@ -170,14 +179,56 @@ class Battlezone extends Engine {
     if (index !== -1) {
       this.enemies.splice(index, 1);
     }
+
+    this.handleGameProgression();
+  }
+
+  handleGameProgression() {
+    const maxEnemies = this.startingEnemyAmount + Math.floor(this.difficultyFactor * 3);
+    const superEnemyPercentage = Math.max(0, Math.min(0.4, this.difficultyFactor / 1));
+    const superEnemiesAmount = Math.floor(maxEnemies * superEnemyPercentage);
+    const regularEnemiesAmount = maxEnemies - superEnemiesAmount;
+
+    console.table([
+      ["difficulty", "enemies", "super enemies", "super enemies %"],
+      [this.difficultyFactor, regularEnemiesAmount, superEnemiesAmount, superEnemyPercentage],
+    ]);
+    // Count currently deployed enemies
+    let currentEnemiesAmount = 0;
+    let currentSuperEnemiesAmount = 0;
+    for (const enemy of this.enemies) {
+      if (enemy instanceof Enemy) {
+        if (enemy instanceof SuperEnemy) {
+          currentSuperEnemiesAmount++;
+        } else {
+          currentEnemiesAmount++;
+        }
+      }
+    }
+
+    // Determine how many more enemies to spawn
+    const remainingRegularEnemies = Math.max(0, regularEnemiesAmount - currentEnemiesAmount);
+    const remainingSuperEnemies = Math.max(0, superEnemiesAmount - currentSuperEnemiesAmount);
+
+    // Spawn regular enemies
+    for (let i = 0; i < remainingRegularEnemies; i++) {
+      this.spawnTank("normal");
+    }
+
+    // Spawn super enemies
+    for (let i = 0; i < remainingSuperEnemies; i++) {
+      // Spawn super enemies with different properties
+      // For now, let's assume it's similar to spawning regular enemies
+      this.spawnTank("super");
+    }
   }
 
   spawnObstacle() {
     if (!this.currentScene) return;
     let randomX =
-      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
+      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[0])) / 2) + this.spawnSize[0];
     let randomZ =
-      Math.round((Math.random() * (this.battfledSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
+      Math.round((Math.random() * (this.battleFieldSize[0] - this.spawnSize[1])) / 2) + this.spawnSize[1];
     randomX *= Math.random() > 0.5 ? 1 : -1;
     randomZ *= Math.random() > 0.5 ? 1 : -1;
 

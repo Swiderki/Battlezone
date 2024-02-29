@@ -12,13 +12,14 @@ import Bullet from "../misc/Bullet";
 import { BulletOverlap } from "../../overlaps/BulletOverlap";
 import { collideObjects } from "../../util/rayCast";
 
-enum ActionType {
+export enum ActionType {
   Rotate,
   Move,
   Shoot,
   StartTargeting,
   EndTargeting,
   Idle,
+  AvoidObstacle,
 }
 
 interface Action {
@@ -28,20 +29,25 @@ interface Action {
 
 class Enemy extends PhysicalGameObject {
   // movement constants
-  protected readonly movementSpeed = 10;
+  protected movementSpeed = 10;
   readonly rotationSpeed = (Math.PI / 180) * 2;
 
   // shooting
-  protected readonly bulletSpeed = 180;
-  protected readonly shootingRange = 200;
-  protected readonly bulletRange = 150;
-  protected readonly shootDelay = 10 * 1000;
-  protected readonly shootingChance = 0.9;
+  protected bulletSpeed = 180;
+  protected shootingRange = 200;
+  protected bulletRange = 150;
+  protected shootDelay = 5 * 1000;
+  protected shootingChance = 0.9;
   protected shootOverheat = false;
 
   // behavior
   protected isTargeting = false;
   protected moveTowardsPlayerChance = 0.5;
+  protected isChasingPlayer = false;
+  protected chaseTimeOut?: number;
+
+  // color
+  protected currentColor = "#fff";
 
   // rotation
   protected angularVelocity: Rotation3DTuple | null = null;
@@ -81,12 +87,14 @@ class Enemy extends PhysicalGameObject {
       if (collideObjects(this.boxCollider!, obstacle.boxCollider)) {
         this.game.removeEnemy(this);
         this.game.currentScene!.removeGameObject(this.id);
+        // console.log('ppspspsp');
+        return;
       }
     }
   }
 
   //* Queue management
-  private enqueueAction(action: Action) {
+  protected enqueueAction(action: Action) {
     this.actionQueue.push(action);
   }
 
@@ -95,11 +103,11 @@ class Enemy extends PhysicalGameObject {
     return this.actionQueue[0];
   }
 
-  private dequeueAction(): Action | undefined {
+  protected dequeueAction(): Action | undefined {
     return this.actionQueue.shift();
   }
 
-  private cleanActionQueue() {
+  protected cleanActionQueue() {
     this.actionQueue = [];
     this.angularVelocity = null;
     this.velocity = Vector.zero();
@@ -120,7 +128,7 @@ class Enemy extends PhysicalGameObject {
     // Random chance to move towards the player
     const keepDistanceFromPlayer = 30;
 
-    if (Math.random() < this.moveTowardsPlayerChance) {
+    if (Math.random() < this.moveTowardsPlayerChance || this.isChasingPlayer) {
       // Calculate direction vector from enemy to player
       const directionToPlayer = Vector.subtract(this.game.player.position, this.position);
       // Normalize the direction vector
@@ -130,6 +138,7 @@ class Enemy extends PhysicalGameObject {
         this.game.player.position,
         Vector.multiply(normalizedDirection, keepDistanceFromPlayer)
       );
+      // console.table([this.game.player.position, destination])
       // Enqueue a movement action towards the calculated destination
       this.moveTo(destination);
       return; // Return early to avoid executing the rest of the method
@@ -273,6 +282,7 @@ class Enemy extends PhysicalGameObject {
     //* perform actions based on action queue
     switch (this.actionQueue[0].type) {
       case ActionType.Rotate:
+        this.currentColor = "green";
         const desiredAngle = this.actionQueue[0].data as Rotation3DTuple;
         if (Math.abs(this._tempRotation.yAxis - desiredAngle[1]) <= Math.abs(this.rotationSpeed)) {
           this.rotate(
@@ -288,7 +298,8 @@ class Enemy extends PhysicalGameObject {
           this.rotate(this.angularVelocity[0], this.angularVelocity[1], this.angularVelocity[2]);
         break;
 
-      case ActionType.Move:
+      case ActionType.Move || ActionType.AvoidObstacle:
+        this.currentColor = "blue";
         const destiny = this.actionQueue[0].data as Vec3D;
         // check if object have reached destiny
         if (distanceToSquared(this.position, destiny) <= 0.01) {
@@ -298,6 +309,7 @@ class Enemy extends PhysicalGameObject {
         }
         break;
       case ActionType.Shoot:
+        this.currentColor = "red";
         this.shoot();
         this.dequeueAction();
         break;
@@ -310,10 +322,40 @@ class Enemy extends PhysicalGameObject {
         this.dequeueAction();
         break;
       case ActionType.Idle:
+        this.currentColor = "#fff";
         const idleTime = this.actionQueue[0].data as number;
         setTimeout(() => this.dequeueAction(), idleTime);
         break;
     }
+
+    this.changeColorOnAction();
+  }
+
+  avoidObstacle() {
+    const backtrackDistance = 5;
+    const backDest = Vector.add(
+      Vector.rotateVector(
+        [0, ((Math.PI + this._tempRotation.yAxis) % 2) * Math.PI, 0],
+        Vector.multiply(Vector.back(), backtrackDistance)
+      ),
+      this.position
+    );
+    this.rotateTowards(backDest);
+    this.moveTo(backDest);
+  }
+
+  isCollidingWithObstacle(position: Vec3D): boolean {
+    for (const obstacle of this.game.obstacles) {
+      if (collideObjects(this.boxCollider!, obstacle.boxCollider!)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  avoidObstacleAction() {
+    // Generate a new destination to avoid obstacles
+    this.avoidObstacle();
   }
 
   //* handle all the movement
@@ -322,22 +364,33 @@ class Enemy extends PhysicalGameObject {
     const previousPosition = { ...this.position };
     if (this.angularVelocity === null) super.updatePhysics(deltaTime);
 
-    //* prevent collisions with obstacles
+    // Check for collisions with obstacles
     for (const obstacle of this.game.obstacles) {
       if (!obstacle.boxCollider) continue;
       if (collideObjects(this.boxCollider!, obstacle.boxCollider)) {
-        this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
-        //* cancel movement if moving
-        if (!this.currentAction) break;
-        if (this.currentAction.type == ActionType.Move) {
-          this.dequeueAction();
-          this.velocity = Vector.zero();
+        // If collision occurs, adjust the destination to avoid the obstacle
+        if (this.currentAction?.type === ActionType.Move || this.currentAction?.type === ActionType.Shoot) {
+          this.cleanActionQueue();
+          this.avoidObstacleAction();
         }
+        // Reset position to previous position to avoid getting stuck
+        this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
         break;
       }
     }
+    // prevent tanks from escaping the battlefield
+    if (Math.abs(this.position.x) > 1000 || Math.abs(this.position.z) > 1000) {
+      this.cleanActionQueue();
+      this.moveTo({ x: 0, y: 0, z: 0 });
+    }
 
     this.handleActions();
+  }
+
+  changeColorOnAction() {
+    for (let i = 0; i < this.getMesh().length; i++) {
+      this.setLineColor(i, this.currentAction?.type === ActionType.AvoidObstacle ? "red" : this.currentColor);
+    }
   }
 
   //* tank behavior
@@ -346,10 +399,17 @@ class Enemy extends PhysicalGameObject {
     // console.log(this.currentAction)
     const distanceToPlayer = Vector.length(Vector.subtract(this.position, this.game.player.position));
     const canShoot = distanceToPlayer < this.shootingRange && !this.shootOverheat && !this.isTargeting;
-    if (Math.random() < this.shootingChance && canShoot) {
+    if (distanceToPlayer < this.shootingRange) {
+      this.isChasingPlayer = true;
+      if (this.chaseTimeOut) clearTimeout(this.chaseTimeOut);
+
+      this.chaseTimeOut = setTimeout(() => (this.isChasingPlayer = false), 1000);
+    }
+    if (this.currentAction?.type === ActionType.AvoidObstacle) return;
+    if ((Math.random() < this.shootingChance && canShoot) || (this.isChasingPlayer && canShoot)) {
       this.cleanActionQueue();
       this.shootPlayer();
-      this.idle(1000);
+      this.idle(this.isChasingPlayer ? 400 : 1000);
       return;
     }
 
