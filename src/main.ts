@@ -31,9 +31,9 @@ class Battlezone extends Engine {
   enemies: GameObject[] = [];
   obstacles: Obstacle[] = [];
 
-  private readonly battleFieldSize = [100, 100];
-  private readonly spawnSize = [40, 40];
-  private readonly startingEnemyAmount = 1;
+  private readonly battleFieldSize = [1000, 1000];
+  private readonly spawnSize = [60, 60];
+  private readonly startingEnemyAmount = 4;
   private readonly startingObstacleAmount = 10;
 
   difficultyFactor = 0;
