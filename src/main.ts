@@ -8,6 +8,7 @@ import LobbyScene from "./Scenes/LobbyScene";
 import LobbyOverlay from "./gui/overlays/LobbyOverlay";
 import PlayOverlay from "./gui/overlays/PlayOverlay";
 import PlayScene from "./Scenes/PlayScene";
+import DeathOverlay from "./gui/overlays/DeathOverlay";
 
 const canvas = document.getElementById("app") as HTMLCanvasElement | null;
 if (!canvas) throw new Error("unable to find canvas");
@@ -20,10 +21,11 @@ type ScenesIDs = {
 type Overlays = {
   lobby?: LobbyOverlay;
   play?: PlayOverlay;
+  death?: DeathOverlay;
 };
 
 class Battlezone extends Engine {
-  _gameState: "lobby" | "play" | "death" = "lobby";
+  _gameState: "lobby" | "play" | "death" = "death";
 
   //* gameObjects
   player: PlayerTank;
@@ -52,7 +54,7 @@ class Battlezone extends Engine {
 
   // game state manipulation
 
-  setGameStateToLobby(): LobbyScene {
+  setGameStateToLobby(): void {
     this.removeAllScenes();
 
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
@@ -70,11 +72,9 @@ class Battlezone extends Engine {
 
     this._gameState = "lobby";
     this.setCurrentScene(this.scenesIDs.lobby!);
-
-    return lobbyScene;
   }
 
-  setGameStateToPlay() {
+  setGameStateToPlay(): void {
     this.removeAllScenes();
 
     const sceneBg = new GameObject("objects/background.obj", { color: "#00f", size: [2, 2, 2] });
@@ -108,29 +108,47 @@ class Battlezone extends Engine {
     this.addEventListeners();
   }
 
+  setGameStateToDeath() {
+    if (!(this.currentScene instanceof PlayScene)) {
+      console.error("Death state can be set only after play state! Current state: ", this._gameState);
+      console.error(this.currentScene);
+      throw new Error();
+    }
+
+    this.currentScene.useDeathOverlay();
+    this.removeEventListeners();
+    this.keysPressed.clear();
+    // this.pauseGame();
+  }
+
   removeAllScenes() {
     this.removeCurrentScene();
-    Object.values(this.scenesIDs).forEach((sceneID) => this.removeScene(sceneID));
-    setTimeout(() => this.spawnTank(), Math.max(4000, 1000 / this.difficultyFactor));
+
+    if (this.scenesIDs.lobby) this.removeScene(this.scenesIDs.lobby);
+    if (this.scenesIDs.play) this.removeScene(this.scenesIDs.play);
+
+    delete this.scenesIDs.lobby;
+    delete this.scenesIDs.play;
   }
 
   addEventListeners(): void {
-    document.addEventListener("keydown", this.handleKeyDown.bind(this));
-    document.addEventListener("keyup", this.handleKeyUp.bind(this));
+    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener("keyup", this.handleKeyUp);
   }
 
   removeEventListeners(): void {
-    document.removeEventListener("keydown", this.handleKeyDown.bind(this));
-    document.removeEventListener("keyup", this.handleKeyUp.bind(this));
+    document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener("keyup", this.handleKeyUp);
   }
 
-  handleKeyDown(e: KeyboardEvent): void {
+  // those 2 function have to be arrow function to avoid this refering to document
+  handleKeyDown = (e: KeyboardEvent) => {
     this.keysPressed.add(e.key.toLocaleLowerCase());
-  }
+  };
 
-  handleKeyUp(e: KeyboardEvent): void {
+  handleKeyUp = (e: KeyboardEvent) => {
     this.keysPressed.delete(e.key.toLocaleLowerCase());
-  }
+  };
 
   spawnTank() {
     if (!this.currentScene) return;
@@ -181,6 +199,8 @@ class Battlezone extends Engine {
     // assign main camera to player
     // we use 'component' binding similar to unity one
     this.player.playerCamera = this.mainCamera!;
+
+    setTimeout(() => this.spawnTank(), Math.max(4000, 1000 / this.difficultyFactor));
   }
 
   override Update(): void {

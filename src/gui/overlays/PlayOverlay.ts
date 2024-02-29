@@ -10,6 +10,7 @@ import Overlay from "./Overlay";
 
 export default class PlayOverlay extends Overlay {
   private crosshair?: Crosshair;
+  private healthBar?: HealthBar;
   override components: GUIComponent[] = [enemyInRangeMsg, enemyLocationMsg, motionBlockedMsg];
 
   constructor(game: Battlezone) {
@@ -26,6 +27,7 @@ export default class PlayOverlay extends Overlay {
 
     this.components.push(healthBar, crosshair, radar, score);
     this.crosshair = crosshair;
+    this.healthBar = healthBar;
   }
 
   private handleCrosshair(): void {
@@ -47,11 +49,9 @@ export default class PlayOverlay extends Overlay {
   }
 
   changeHealthBy(amount: number) {
-    for (const component of this.components) {
-      if (component instanceof HealthBar) {
-        component.currentHealth += amount;
-      }
-    }
+    if (!this.healthBar) return;
+
+    this.healthBar.currentHealth += amount;
   }
 
   get currentHealth() {

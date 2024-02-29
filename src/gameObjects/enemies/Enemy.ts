@@ -56,6 +56,8 @@ class Enemy extends PhysicalGameObject {
   //* references
   protected game: Battlezone;
 
+  override boxColliderScale: number = 0.6;
+
   //* Start
   constructor(
     game: Battlezone,
@@ -75,7 +77,8 @@ class Enemy extends PhysicalGameObject {
   override Start(): void {
     this.generateBoxCollider();
     for (const obstacle of this.game.obstacles) {
-      if (collideObjects(this.boxCollider!, obstacle.boxCollider!)) {
+      if (!obstacle.boxCollider) continue;
+      if (collideObjects(this.boxCollider!, obstacle.boxCollider)) {
         this.game.removeEnemy(this);
         this.game.currentScene!.removeGameObject(this.id);
       }
@@ -321,7 +324,8 @@ class Enemy extends PhysicalGameObject {
 
     //* prevent collisions with obstacles
     for (const obstacle of this.game.obstacles) {
-      if (collideObjects(this.boxCollider!, obstacle.boxCollider!)) {
+      if (!obstacle.boxCollider) continue;
+      if (collideObjects(this.boxCollider!, obstacle.boxCollider)) {
         this.setPosition(previousPosition.x, previousPosition.y, previousPosition.z);
         //* cancel movement if moving
         if (!this.currentAction) break;

@@ -19,7 +19,7 @@ export default class LobbyScene extends Scene {
   }
 
   useLobbyOverlay(): void {
-    this.game.overlays.lobby = new LobbyOverlay(this.game);
+    this.game.overlays.lobby = new LobbyOverlay(this.game) as unknown as LobbyOverlay;
     this.game.overlays.lobby.applyOverlay(this.gui);
     this.gui.addElement(this.game.overlays.lobby);
   }

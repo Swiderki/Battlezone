@@ -34,10 +34,11 @@ export class BulletOverlap extends Overlap {
 
     //* handle player collision
     if (this.target instanceof PlayerTank) {
-      if (this.target.game.overlays.play?.currentHealth === 1) {
-        console.log("Umierasz!!!!!!!!!!!!!");
-      }
       this.target.game.overlays.play?.changeHealthBy(-1);
+
+      if (this.target.game.overlays.play?.currentHealth === 0) {
+        this.game.setGameStateToDeath();
+      }
     }
 
     this.game.currentScene.removeGameObject(this.bullet.id);
