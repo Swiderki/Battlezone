@@ -26,7 +26,7 @@ export class BulletOverlap extends Overlap {
       this.game.currentScene.animatedObjectDestruction(this.target.id);
       this.game.removeEnemy(this.target);
       this.game.player.score += NORMAL_TANK_POINTS;
-      this.game.difficultyFactor += 0.01;
+      this.game.difficultyFactor += 0.1;
       // save score every time player scores to avoid situation of losing their
       // points in case of unfinishing the game properly (e.g. power loss)
       BestScore.checkAndSave(this.game.player.score);
