@@ -41,7 +41,6 @@ class SuperEnemy extends Enemy {
                 this.movementSpeed = 25;
             }, 1000);
         }
-        if(this.currentAction?.type === ActionType.AvoidObstacle) return;
         if ((Math.random() < this.shootingChance && canShoot) || (this.isChasingPlayer && canShoot)) {
           this.cleanActionQueue();
           this.shootPlayer();
